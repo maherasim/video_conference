@@ -4,7 +4,7 @@ include 'connection.php';
 // Handle requests based on action
 $action = $_GET['action'] ?? '';
 
-echo "hello";
+ 
 switch ($action) {
     case 'signout':
         include 'signout.php';
