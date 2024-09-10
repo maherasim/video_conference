@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt->execute([$token, $email]);
 
         if ($stmt->rowCount() > 0) {
-            echo json_encode(['message' => 'Signed in successfully', 'token' => $token]);
+            echo json_encode(['token' => $token]);
         } else {
             echo json_encode(['error' => 'Failed to sign in.']);
         }
