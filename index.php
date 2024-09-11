@@ -4,7 +4,6 @@ include 'connection.php';
 // Handle requests based on action
 $action = $_GET['action'] ?? '';
 
- 
 switch ($action) {
     case 'signout':
         include 'signout.php';
@@ -26,8 +25,12 @@ switch ($action) {
         include 'feedback.php';
         break;
     
-    case 'recordvideocall': // Add this case for recordvideocall
+    case 'recordvideocall':
         include 'recordvideocall.php';
+        break;
+
+    case 'callnotification': // New case for call notifications
+        include 'callnotification.php';
         break;
 
     default:
