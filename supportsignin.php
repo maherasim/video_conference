@@ -52,7 +52,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         if ($stmt->rowCount() > 0) {
             http_response_code(200); // OK
-            echo json_encode(['token' => $token]);
+            echo json_encode([
+                'token' => $token,
+                'id' => $support['id'] // Return the support staff's ID
+            ]);
         } else {
             http_response_code(500); // Internal Server Error
             echo json_encode(['error' => 'Failed to sign in.']);

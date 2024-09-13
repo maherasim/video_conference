@@ -39,8 +39,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $updateStmt = $pdo->prepare("UPDATE users SET remember_token = ? WHERE email = ?");
             $updateStmt->execute([$token, $email]);
 
+            // Return the token and user ID in the response
             http_response_code(200); // OK
-            echo json_encode(['token' => $token]);
+            echo json_encode([
+                'token' => $token,
+                'id' => $user['id'] // Return the user's ID
+            ]);
         } else {
             http_response_code(401); // Unauthorized
             echo json_encode(['error' => 'The provided credentials are incorrect.']);
