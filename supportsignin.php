@@ -54,7 +54,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             http_response_code(200); // OK
             echo json_encode([
                 'token' => $token,
-                'name' => $support['name'] // Return the support staff's name
+                'name' => $support['name'] ,
+                'id' => $support['id'] 
             ]);
         } else {
             http_response_code(500); // Internal Server Error

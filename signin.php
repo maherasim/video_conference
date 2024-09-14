@@ -43,7 +43,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             http_response_code(200); // OK
             echo json_encode([
                 'token' => $token,
-                'name' => $user['name'] // Return the user's ID
+                'name' => $user['name'] ,
+                'id' => $user['id'] 
             ]);
         } else {
             http_response_code(401); // Unauthorized
