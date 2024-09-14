@@ -55,11 +55,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt = $pdo->prepare("INSERT INTO video_calls (client_id, support_id, start_timestamp, end_timestamp, duration, client_review_id) VALUES (?, ?, ?, ?, ?, ?)");
         $stmt->execute([$client_id, $support_id, $start_timestamp, $end_timestamp, $duration, $client_review_id]);
 
-        // Return success message with client_review_id
-        echo json_encode([
-            'message' => 'Video call recorded successfully',
-            'client_review_id' => $client_review_id
-        ]);
+        // Manually format the response to print each key-value on a new line
+        header('Content-Type: application/json');
+        echo "{\n";
+        echo '  "message": "Video call recorded successfully",' . "\n";
+        echo '  "client_review_id": ' . ($client_review_id !== null ? $client_review_id : 'null') . "\n";
+        echo "}";
     } catch (PDOException $e) {
         echo json_encode(['error' => 'Database error: ' . $e->getMessage()]);
     }
