@@ -1,5 +1,5 @@
 <?php
-// Database configuration
+// Database configuration git test
 $servername = "localhost";
 $username = "root";
 $password = "";
