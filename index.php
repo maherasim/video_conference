@@ -25,11 +25,23 @@ switch ($action) {
         include 'feedback.php';
         break;
     
+    case 'startcall':
+        include 'startcall.php';
+        break;
+    case 'claimcall':
+            include 'claimcall.php';
+            break;
+    case 'call_list':
+            include 'call_list_support.php';
+            break;
+    case 'call_cleint_history':
+            include 'clienthistory.php';
+            break;
     case 'recordvideocall':
         include 'recordvideocall.php';
         break;
 
-    case 'callnotification': // New case for call notifications
+    case 'callnotification': 
         include 'callnotification.php';
         break;
 
@@ -38,6 +50,5 @@ switch ($action) {
         break;
 }
 
-// Close the database connection (optional, not required for PDO)
-// $pdo = null; // Uncomment if using PDO
+ 
 ?>
