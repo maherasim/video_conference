@@ -1,69 +1,54 @@
 <?php
-include 'connection.php'; // Database connection
+include 'connection.php'; // Ensure this line is at the top
+header('Content-Type: application/json');
 
-// Check if the request method is POST
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Get the request body as JSON
     $input = file_get_contents('php://input');
     $data = json_decode($input, true);
 
-    // Extract and validate the required fields
-    $client_id = $data['client_id'] ?? null;
-    $support_id = $data['support_id'] ?? null;
-    $rating = $data['rating'] ?? null;
+    $call_id = $data['call_id'] ?? '';
+    $client_id = $data['client_id'] ?? '';
+    $support_id = $data['support_id'] ?? '';
+    $rating = $data['rating'] ?? '';
+    $feedback = $data['feedback'] ?? '';
 
-    // Validate client_id, support_id, and rating
-    if (empty($client_id) || empty($support_id) || empty($rating)) {
-        echo json_encode(['error' => 'client_id, support_id, and rating are required.']);
+    // Validate input
+    if (empty($call_id) || empty($client_id) || empty($support_id) || empty($rating) || empty($feedback)) {
+        http_response_code(400); // Bad Request
+        echo json_encode(['status' => 'error', 'message' => 'All fields (call_id, client_id, support_id, rating, feedback) are required.']);
         exit;
     }
 
     if (!is_numeric($rating) || $rating < 1 || $rating > 5) {
-        echo json_encode(['error' => 'Rating must be an integer between 1 and 5.']);
-        exit;
-    }
-
-    // Check if client exists
-    $stmt = $pdo->prepare("SELECT id FROM clients WHERE id = ?");
-    $stmt->execute([$client_id]);
-    if ($stmt->rowCount() === 0) {
-        echo json_encode(['error' => 'Client not found.']);
-        exit;
-    }
-
-    // Check if support staff exists
-    $stmt = $pdo->prepare("SELECT id FROM customer_support WHERE id = ?");
-    $stmt->execute([$support_id]);
-    if ($stmt->rowCount() === 0) {
-        echo json_encode(['error' => 'Support staff not found.']);
+        http_response_code(400); // Bad Request
+        echo json_encode(['status' => 'error', 'message' => 'Rating must be a number between 1 and 5.']);
         exit;
     }
 
     try {
-        // Insert the review into the 'reviews' table
-        $stmt = $pdo->prepare("INSERT INTO reviews (client_id, support_id, rating, review_timestamp) VALUES (?, ?, ?, NOW())");
-        $stmt->execute([$client_id, $support_id, $rating]);
+        // Check if the call exists and belongs to the given client and support
+        $stmt = $pdo->prepare("SELECT * FROM calls WHERE call_id = ? AND client_id = ? AND support_id = ?");
+        $stmt->execute([$call_id, $client_id, $support_id]);
+        $call = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // Get the newly inserted review's ID (optional if needed)
-        $review_id = $pdo->lastInsertId();
+        if (!$call) {
+            http_response_code(404); // Not Found
+            echo json_encode(['status' => 'error', 'message' => 'Call not found or does not match the client/support.']);
+            exit;
+        }
 
-        // Update the support staff's total_reviews and average_rating
-        $stmt = $pdo->prepare("UPDATE customer_support SET total_reviews = total_reviews + 1 WHERE id = ?");
-        $stmt->execute([$support_id]);
+        // Insert feedback into the feedback table
+        $stmt = $pdo->prepare("
+            INSERT INTO feedback (call_id, client_id, support_id, rating, feedback, created_at) 
+            VALUES (?, ?, ?, ?, ?, NOW())
+        ");
+        $stmt->execute([$call_id, $client_id, $support_id, $rating, $feedback]);
 
-        // Calculate the new average rating
-        $stmt = $pdo->prepare("SELECT AVG(rating) as avg_rating FROM reviews WHERE support_id = ?");
-        $stmt->execute([$support_id]);
-        $average_rating = $stmt->fetchColumn();
-
-        // Update the support staff's average_rating
-        $stmt = $pdo->prepare("UPDATE customer_support SET average_rating = ? WHERE id = ?");
-        $stmt->execute([$average_rating, $support_id]);
-
-        // Send success response
-        echo json_encode(['message' => 'Feedback submitted successfully']);
+        // Respond with success
+        http_response_code(200); // OK
+        echo json_encode(['status' => 'success', 'message' => 'Thank you for your feedback!']);
     } catch (PDOException $e) {
-        echo json_encode(['error' => 'Database error: ' . $e->getMessage()]);
+        http_response_code(500); // Internal Server Error
+        echo json_encode(['status' => 'error', 'message' => 'Unable to submit feedback: ' . $e->getMessage()]);
     }
 }
-?>

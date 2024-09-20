@@ -24,9 +24,26 @@ switch ($action) {
     case 'feedback':
         include 'feedback.php';
         break;
-    
+    case 'showfeedback':
+        include 'showfeedback.php';
+        break;
+    case 'create_ticket':
+        include 'createticket.php';
+        break;
+    case 'update_ticket':
+        include 'update_ticket.php';
+        break;
+
+   case 'view_ticket':
+        include 'viewticket.php';
+        break;
+            
+        
     case 'startcall':
         include 'startcall.php';
+        break;
+    case 'endcall':
+        include 'endcall.php';
         break;
     case 'claimcall':
             include 'claimcall.php';
@@ -34,6 +51,9 @@ switch ($action) {
     case 'call_list':
             include 'call_list_support.php';
             break;
+   case 'call_support_history':
+                include 'supporthistory.php';
+                break;
     case 'call_cleint_history':
             include 'clienthistory.php';
             break;

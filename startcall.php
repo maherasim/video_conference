@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $call_id = 'call_' . bin2hex(random_bytes(6));
 
         // Insert the new call record into the database
-        $stmt = $pdo->prepare("INSERT INTO calls (call_id, client_id, call_status, created_at) VALUES (?, ?, 'waiting', NOW())");
+        $stmt = $pdo->prepare("INSERT INTO calls (call_id, client_id, call_status, created_at, call_start_time) VALUES (?, ?, 'waiting', NOW(), NOW())");
         $stmt->execute([$call_id, $client_id]);
 
         // Respond with success
