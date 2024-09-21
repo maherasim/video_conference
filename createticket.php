@@ -39,7 +39,7 @@
          $stmt->execute([$ticket_id, $client_id, $status, $issue_description]);
  
          // Respond with success
-         http_response_code(201); // Created
+         http_response_code(200); // Created
          echo json_encode([
              'status' => 'success',
              'ticket_id' => $ticket_id,
