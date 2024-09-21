@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
         FROM calls c
         LEFT JOIN users s ON c.support_id = s.id
         LEFT JOIN feedback f ON c.call_id = f.call_id
-        WHERE c.client_id = (SELECT id FROM clients WHERE remember_token = ?)
+        WHERE c.client_id = (SELECT id FROM users WHERE remember_token = ?)
     ");
     
         $stmt->execute([$client_token]);
