@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 function verify_support_jwt_token($support_id, $token, $pdo) {
     try {
         // Use the token field for verification for support staff
-        $stmt = $pdo->prepare("SELECT id FROM customer_support WHERE id = ? AND token = ?");
+        $stmt = $pdo->prepare("SELECT id FROM customer_support WHERE uuid = ? AND token = ?");
         $stmt->execute([$support_id, $token]);
         $support = $stmt->fetch(PDO::FETCH_ASSOC);
 
