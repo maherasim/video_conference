@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt->execute([$support_id, $call_id]);
 
         // Fetch client and support names for response
-        $client_stmt = $pdo->prepare("SELECT name FROM users WHERE id = ?");
+        $client_stmt = $pdo->prepare("SELECT name FROM users WHERE uuid = ?");
         $client_stmt->execute([$call['client_id']]);
         $client = $client_stmt->fetch(PDO::FETCH_ASSOC);
 
