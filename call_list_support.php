@@ -2,7 +2,7 @@
 include 'connection.php'; // Ensure this line is at the top
 header('Content-Type: application/json');
 
-// Check if the request method is GET
+// Check if the request method is GET ok nice 
 if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     
     // Get the Authorization header
