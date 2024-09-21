@@ -77,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 function verify_jwt_token($user_id, $token, $pdo) {
     try {
         // Check in the users table (for support users)
-        $stmt = $pdo->prepare("SELECT remember_token FROM users WHERE uuid = ?");
+        $stmt = $pdo->prepare("SELECT token FROM customer_support WHERE uuid = ?");
         $stmt->execute([$user_id]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -87,7 +87,7 @@ function verify_jwt_token($user_id, $token, $pdo) {
         }
 
         // If not found in users table, check in the clients table
-        $stmt = $pdo->prepare("SELECT remember_token FROM clients WHERE uuid = ?");
+        $stmt = $pdo->prepare("SELECT remember_token FROM users WHERE uuid = ?");
         $stmt->execute([$user_id]);
         $client = $stmt->fetch(PDO::FETCH_ASSOC);
 
