@@ -43,8 +43,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             http_response_code(200); // OK
             echo json_encode([
                 'token' => $token,
+                'status' =>'success',
                 'name' => $user['name'] ,
-                'id' => $user['id'] 
+                'id' => $user['UUIDs'] 
             ]);
         } else {
             http_response_code(401); // Unauthorized

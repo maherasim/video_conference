@@ -51,9 +51,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt->execute([$token, $email]);
 
         if ($stmt->rowCount() > 0) {
-            http_response_code(200); // OK
+            http_response_code(200); / ./ OK
             echo json_encode([
                 'token' => $token,
+                'status'=>'success',
                 'name' => $support['name'] ,
                 'id' => $support['id'] 
             ]);
