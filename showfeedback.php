@@ -31,13 +31,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     }
 
     try {
-        // Fetch all feedback associated with the support user's calls without type checks
+        // Fetch data only from the feedback table (call_id, feedback, rating)
         $stmt = $pdo->prepare("
-            SELECT f.call_id, c.name AS client_name, f.rating, f.feedback
-            FROM feedback f
-            JOIN calls ca ON f.call_id = ca.call_id
-            JOIN users c ON f.client_id = c.id
-            WHERE ca.support_id = ?
+            SELECT call_id, feedback, rating
+            FROM feedback
+            WHERE support_id = ?
         ");
         $stmt->execute([$support_id]);
         $feedback_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
