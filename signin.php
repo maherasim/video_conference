@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 'token' => $token,
                 'status' =>'success',
                 'name' => $user['name'] ,
-                'id' => $user['UUIDs'] 
+                'id' => $user['uuid'] 
             ]);
         } else {
             http_response_code(401); // Unauthorized
