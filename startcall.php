@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 function verify_jwt_token($client_id, $token, $pdo) {
     try {
         // Fetch user by client_id
-        $stmt = $pdo->prepare("SELECT remember_token FROM users WHERE id = ?");
+        $stmt = $pdo->prepare("SELECT remember_token FROM users WHERE uuid = ?");
         $stmt->execute([$client_id]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
