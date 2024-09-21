@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             SELECT f.call_id, c.name AS client_name, f.rating, f.feedback
             FROM feedback f
             JOIN calls ca ON f.call_id = ca.call_id
-            JOIN users c ON f.client_id = c.id
+            JOIN users c ON f.client_id = c.uuid
             WHERE ca.support_id = ?
         ");
         $stmt->execute([$support_id]);
