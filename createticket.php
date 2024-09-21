@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             'message' => 'Your ticket has been created and will be addressed shortly.'
         ]);
     } catch (PDOException $e) {
-        http_response_code(500); // Internal Server Error
+        http_response_code(400); // Internal Server Error
         echo json_encode(['status' => 'error', 'message' => 'Unable to create a ticket at this time. Please try again later.']);
     }
 }
