@@ -36,13 +36,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             SELECT f.call_id, c.name AS client_name, f.rating, f.feedback
             FROM feedback f
             JOIN calls ca ON f.call_id = ca.call_id
-            JOIN users c ON f.client_id = c.id
+            JOIN clients c ON f.client_id = c.id
             WHERE ca.support_id = ?
         ");
         $stmt->execute([$support_id]);
         $feedback_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Respond with success ok
+        // Respond with success
         http_response_code(200); // OK
         echo json_encode(['status' => 'success', 'feedback_list' => $feedback_list]);
     } catch (PDOException $e) {
