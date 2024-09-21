@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
         $stmt->execute([$support_id]);
         $feedback_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Respond with success
+        // Respond with success ok
         http_response_code(200); // OK
         echo json_encode(['status' => 'success', 'feedback_list' => $feedback_list]);
     } catch (PDOException $e) {
