@@ -21,13 +21,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     try {
         // Verify the token based on the user role (either client or support)
         if ($user_role === 'client') {
-            if (!verify_jwt_token($user_id, $token, $pdo, 'clients')) {
+            if (!verify_jwt_token($user_id, $token, $pdo, 'users')) {
                 http_response_code(401); // Unauthorized
                 echo json_encode(['status' => 'error', 'message' => 'Invalid client token.']);
                 exit;
             }
         } elseif ($user_role === 'support') {
-            if (!verify_jwt_token($user_id, $token, $pdo, 'support')) {
+            if (!verify_jwt_token($user_id, $token, $pdo, 'customer_support')) {
                 http_response_code(401); // Unauthorized
                 echo json_encode(['status' => 'error', 'message' => 'Invalid support token.']);
                 exit;
@@ -74,10 +74,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 
 // Function to verify the token based on user type (client or support)
-function verify_jwt_token($user_id, $token, $pdo) {
+function verify_jwt_token($user_id, $token, $pdo, $table) {
     try {
-        // Check in the users table (for support users)
-        $stmt = $pdo->prepare("SELECT token FROM customer_support WHERE uuid = ?");
+        // Check in the specified table for the token
+        $stmt = $pdo->prepare("SELECT remember_token FROM $table WHERE id = ?");
         $stmt->execute([$user_id]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -86,20 +86,11 @@ function verify_jwt_token($user_id, $token, $pdo) {
             return true;
         }
 
-        // If not found in users table, check in the clients table
-        $stmt = $pdo->prepare("SELECT remember_token FROM users WHERE uuid = ?");
-        $stmt->execute([$user_id]);
-        $client = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        // If client is found and token matches, return true
-        if ($client && $client['remember_token'] === $token) {
-            return true;
-        }
-
-        // If neither match, return false
+        // If not found or token doesn't match, return false
         return false;
     } catch (PDOException $e) {
         // Handle any potential database errors
         return false;
     }
 }
+?>
