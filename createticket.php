@@ -3,29 +3,13 @@ include 'connection.php'; // Ensure this line is at the top
 header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // Get the input data from the request body (JSON)
     $input = file_get_contents('php://input');
     $data = json_decode($input, true);
 
-    // Get the Authorization header
-    $headers = apache_request_headers();
-    $authHeader = $headers['Authorization'] ?? '';
-
-    if (empty($authHeader)) {
-        http_response_code(401); // Unauthorized
-        echo json_encode(['status' => 'error', 'message' => 'Authorization header missing']);
-        exit;
-    }
-
-    // Extract the token from the Authorization header
-    list($bearer, $token) = explode(' ', $authHeader);
-
-    if (strcasecmp($bearer, 'Bearer') != 0 || empty($token)) {
-        http_response_code(401); // Unauthorized
-        echo json_encode(['status' => 'error', 'message' => 'Invalid Authorization header']);
-        exit;
-    }
-
+    // Extract data from the JSON body
     $client_id = $data['client_id'] ?? '';
+    $token = $data['token'] ?? ''; // Get the token from the body
     $issue_description = $data['issue_description'] ?? '';
     $status = $data['status'] ?? 'pending'; // Default to 'pending' if not provided
 
@@ -70,10 +54,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 // Function to verify client JWT token
 function verify_client_jwt_token($client_id, $token, $pdo) {
     try {
+        // Fetch the stored remember_token from the users table
         $stmt = $pdo->prepare("SELECT remember_token FROM users WHERE id = ?");
         $stmt->execute([$client_id]);
         $client = $stmt->fetch(PDO::FETCH_ASSOC);
 
+        // Verify the provided token matches the one stored in the database
         return $client && $client['remember_token'] === $token;
     } catch (PDOException $e) {
         return false; // Handle any potential database errors
