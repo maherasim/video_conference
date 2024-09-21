@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             INSERT INTO tickets (ticket_id, client_id, status, issue_description)
             VALUES (?, ?, ?, ?)
         ");
-        $stmt->execute([$ticket_id, $client_id, $status, $issue_description]);
+        $stmt->execute([$ticket_id, $client_uuid, $status, $issue_description]);
 
         // Respond with success
         http_response_code(200); // Created
