@@ -4,10 +4,11 @@ header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     try {
-        // Fetch all data from the feedback table (call_id, feedback, rating)
+        // Fetch all data from the feedback table including client_id, feedback, rating, and client name from users table
         $stmt = $pdo->prepare("
-            SELECT call_id, feedback, rating
-            FROM feedback
+            SELECT f.call_id, f.feedback, f.rating, f.client_id, u.name AS client_name
+            FROM feedback f
+            JOIN users u ON f.client_id = u.uuid
         ");
         $stmt->execute();
         $feedback_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
