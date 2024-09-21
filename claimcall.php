@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 function verify_support_token($support_id, $token, $pdo) {
     try {
         // Fetch support by support_id
-        $stmt = $pdo->prepare("SELECT token FROM customer_support WHERE id = ?");
+        $stmt = $pdo->prepare("SELECT token FROM customer_support WHERE uuid = ?");
         $stmt->execute([$support_id]);
         $support = $stmt->fetch(PDO::FETCH_ASSOC);
 
