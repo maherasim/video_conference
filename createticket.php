@@ -1,4 +1,4 @@
-<?php 
+<?php  
 include 'connection.php'; // Ensure this line is at the top
 header('Content-Type: application/json');
 
@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $data = json_decode($input, true);
 
     // Extract parameters from the request body
-    $client_uuid = $data['client_id'] ?? ''; // Expecting client_uuid in the input
+    $client_uuid = $data['client_id'] ?? ''; // Expecting client_id (uuid) in the input
     $client_token = $data['client_token'] ?? ''; // Getting token from body
     $issue_description = $data['issue_description'] ?? '';
     $status = $data['status'] ?? 'pending'; // Default to 'pending' if not provided
@@ -21,8 +21,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     // Verify client token
-    $client_id = verify_client_uuid($client_uuid, $client_token, $pdo);
-    if ($client_id === false) {
+    $user_id = verify_client_uuid($client_uuid, $client_token, $pdo);
+    if ($user_id === false) {
         http_response_code(401); // Unauthorized
         echo json_encode(['status' => 'error', 'message' => 'Invalid token']);
         exit;
@@ -32,12 +32,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // Generate a unique ticket ID
         $ticket_id = 'ticket_' . uniqid();
 
-        // Insert the ticket into the database
+        // Insert the ticket into the database with the client_uuid instead of user_id
         $stmt = $pdo->prepare("
             INSERT INTO tickets (ticket_id, client_id, status, issue_description)
             VALUES (?, ?, ?, ?)
         ");
-        $stmt->execute([$ticket_id, $client_id, $status, $issue_description]);
+        $stmt->execute([$ticket_id, $client_uuid, $status, $issue_description]); // Use client_uuid here
 
         // Respond with success
         http_response_code(200); // Created
@@ -62,7 +62,7 @@ function verify_client_uuid($client_uuid, $client_token, $pdo) {
 
         // Compare the token from the request body with the one stored in the database
         if ($client && $client['remember_token'] === $client_token) {
-            return $client['id']; // Return the user ID
+            return $client['id']; // Return the user ID for any further operations if needed
         }
     } catch (PDOException $e) {
         // Handle any potential database errors
