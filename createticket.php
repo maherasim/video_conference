@@ -8,22 +8,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $data = json_decode($input, true);
 
     // Extract parameters from the request body
-    $client_uuid = $data['client_id'] ?? '';
-    $client_token = $data['client_token'] ?? ''; // Getting token from body
+    $client_uuid = $data['client_uuid'] ?? ''; // Changed from client_id
     $issue_description = $data['issue_description'] ?? '';
     $status = $data['status'] ?? 'pending'; // Default to 'pending' if not provided
 
     // Validate input
-    if (empty($client_uuid) || empty($client_token) || empty($issue_description)) {
+    if (empty($client_uuid) || empty($issue_description)) {
         http_response_code(400); // Bad Request
-        echo json_encode(['status' => 'error', 'message' => 'Client ID, token, and issue description are required.']);
-        exit;
-    }
-
-    // Verify client token
-    if (!verify_client_jwt_token($client_uuid, $client_token, $pdo)) {
-        http_response_code(401); // Unauthorized
-        echo json_encode(['status' => 'error', 'message' => 'Invalid token']);
+        echo json_encode(['status' => 'error', 'message' => 'Client UUID and issue description are required.']);
         exit;
     }
 
@@ -48,21 +40,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } catch (PDOException $e) {
         http_response_code(500); // Internal Server Error
         echo json_encode(['status' => 'error', 'message' => 'Unable to create a ticket at this time. Please try again later.']);
-    }
-}
-
-// Function to verify client JWT token (with token coming from body)
-function verify_client_jwt_token($client_uuid, $client_token, $pdo) {
-    try {
-        // Fetch the stored remember_token from the users table where uuid matches the client_id
-        $stmt = $pdo->prepare("SELECT remember_token FROM users WHERE uuid = ?");
-        $stmt->execute([$client_id]);
-        $client = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        // Compare the token from the request body with the one stored in the database
-        return $client && $client['remember_token'] === $client_token;
-    } catch (PDOException $e) {
-        return false; // Handle any potential database errors
     }
 }
 ?>
