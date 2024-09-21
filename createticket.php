@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $data = json_decode($input, true);
 
     // Extract parameters from the request body
-    $client_uuid = $data['client_uuid'] ?? ''; // Changed from client_id
+    $client_uuid = $data['client_id'] ?? ''; // Changed from client_id
     $issue_description = $data['issue_description'] ?? '';
     $status = $data['status'] ?? 'pending'; // Default to 'pending' if not provided
 
