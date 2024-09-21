@@ -9,35 +9,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $call_id = $data['call_id'] ?? '';
     $user_role = $data['user_role'] ?? '';
     $user_id = $data['user_id'] ?? '';
-    $token = $data['token'] ?? '';
 
     // Validate input
-    if (empty($call_id) || empty($user_role) || empty($user_id) || empty($token)) {
+    if (empty($call_id) || empty($user_role) || empty($user_id)) {
         http_response_code(400); // Bad Request
-        echo json_encode(['status' => 'error', 'message' => 'Call ID, User Role, User ID, and token are required.']);
+        echo json_encode(['status' => 'error', 'message' => 'Call ID, User Role, and User ID are required.']);
         exit;
     }
 
     try {
-        // Verify the token based on the user role (either client or support)
-        if ($user_role === 'client') {
-            if (!verify_jwt_token($user_id, $token, $pdo, 'clients')) {
-                http_response_code(401); // Unauthorized
-                echo json_encode(['status' => 'error', 'message' => 'Invalid client token.']);
-                exit;
-            }
-        } elseif ($user_role === 'support') {
-            if (!verify_jwt_token($user_id, $token, $pdo, 'support')) {
-                http_response_code(401); // Unauthorized
-                echo json_encode(['status' => 'error', 'message' => 'Invalid support token.']);
-                exit;
-            }
-        } else {
-            http_response_code(400); // Bad Request
-            echo json_encode(['status' => 'error', 'message' => 'Invalid user role.']);
-            exit;
-        }
-
         // Check if the call exists
         $stmt = $pdo->prepare("SELECT * FROM calls WHERE call_id = ?");
         $stmt->execute([$call_id]);
@@ -72,34 +52,4 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         echo json_encode(['status' => 'error', 'message' => 'Unable to end the call: ' . $e->getMessage()]);
     }
 }
-
-// Function to verify the token based on user type (client or support)
-function verify_jwt_token($user_id, $token, $pdo) {
-    try {
-        // Check in the users table (for support users)
-        $stmt = $pdo->prepare("SELECT remember_token FROM users WHERE id = ?");
-        $stmt->execute([$user_id]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        // If user is found and token matches, return true
-        if ($user && $user['remember_token'] === $token) {
-            return true;
-        }
-
-        // If not found in users table, check in the clients table
-        $stmt = $pdo->prepare("SELECT remember_token FROM clients WHERE id = ?");
-        $stmt->execute([$user_id]);
-        $client = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        // If client is found and token matches, return true
-        if ($client && $client['remember_token'] === $token) {
-            return true;
-        }
-
-        // If neither match, return false
-        return false;
-    } catch (PDOException $e) {
-        // Handle any potential database errors
-        return false;
-    }
-}
+?>
