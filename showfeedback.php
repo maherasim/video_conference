@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
         $stmt = $pdo->prepare("
             SELECT call_id, feedback, rating
             FROM feedback
-            WHERE support_id = ?
+            
         ");
         $stmt->execute([$support_id]);
         $feedback_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
