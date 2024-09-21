@@ -30,46 +30,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
         exit;
     }
 
-    // Check if ticket_id is provided in the request
-    if (!isset($_GET['ticket_id'])) {
-        http_response_code(400); // Bad Request
-        echo json_encode(['status' => 'error', 'message' => 'Ticket ID is required']);
-        exit;
-    }
-
-    $ticket_id = $_GET['ticket_id'];
-
     try {
-        // Fetch the ticket details from the database
+        // Fetch feedback associated with the support user's calls
         $stmt = $pdo->prepare("
-            SELECT ticket_id, status, issue_description, created_at, updated_at
-            FROM tickets
-            WHERE ticket_id = ?
+            SELECT f.call_id, c.name AS client_name, f.rating, f.feedback
+            FROM feedback f
+            JOIN calls ca ON f.call_id = ca.call_id
+            JOIN clients c ON f.client_id = c.id
+            WHERE ca.support_id = ?
         ");
-        $stmt->execute([$ticket_id]);
-        $ticket = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->execute([$support_id]);
+        $feedback_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        if ($ticket) {
-            // Respond with the ticket details
-            http_response_code(200); // OK
-            echo json_encode([
-                'status' => 'success',
-                'ticket_status' => [
-                    'ticket_id' => $ticket['ticket_id'],
-                    'status' => $ticket['status'],
-                    'issue_description' => $ticket['issue_description'],
-                    'created_at' => $ticket['created_at'],
-                    'updated_at' => $ticket['updated_at']
-                ]
-            ]);
-        } else {
-            // Ticket not found
-            http_response_code(404); // Not Found
-            echo json_encode(['status' => 'error', 'message' => 'Ticket not found']);
-        }
+        // Respond with success
+        http_response_code(200); // OK
+        echo json_encode(['status' => 'success', 'feedback_list' => $feedback_list]);
     } catch (PDOException $e) {
         http_response_code(500); // Internal Server Error
-        echo json_encode(['status' => 'error', 'message' => 'Unable to retrieve ticket status: ' . $e->getMessage()]);
+        echo json_encode(['status' => 'error', 'message' => 'Unable to retrieve feedback: ' . $e->getMessage()]);
     }
 }
 
