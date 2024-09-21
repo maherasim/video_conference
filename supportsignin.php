@@ -56,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 'token' => $token,
                 'status'=>'success',
                 'name' => $support['name'] ,
-                'id' => $support['uuid'] 
+                'support_id' => $support['uuid'] 
             ]);
         } else {
             http_response_code(500); // Internal Server Error
