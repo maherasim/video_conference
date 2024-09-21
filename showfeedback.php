@@ -37,7 +37,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             FROM feedback f
             JOIN calls ca ON f.call_id = ca.call_id
             JOIN users c ON f.client_id = c.id
-            WHERE ca.support_id = ?
+            WHERE ca.support_id = ? AND 
+                  (c.id REGEXP '^[0-9]+$')  -- Ensure client_id is an integer
+                  AND (ca.support_id REGEXP '^[0-9]+$') -- Ensure support_id is an integer
         ");
         $stmt->execute([$support_id]);
         $feedback_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
