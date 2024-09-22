@@ -3,6 +3,9 @@ require 'vendor/autoload.php'; // Ensure you have installed the required librari
 
 use Ratchet\MessageComponentInterface;
 use Ratchet\ConnectionInterface;
+use Ratchet\Http\HttpServer;
+use Ratchet\Server\IoServer;
+use Ratchet\WebSocket\WsServer;
 
 class WebSocketServer implements MessageComponentInterface {
     protected $clients;
