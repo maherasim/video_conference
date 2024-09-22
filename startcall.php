@@ -46,6 +46,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt = $pdo->prepare("INSERT INTO calls (call_id, client_id, call_status, created_at, call_start_time) VALUES (?, ?, 'waiting', NOW(), NOW())");
         $stmt->execute([$call_id, $client_uuid]); // Use UUID here when inserting the call record
 
+        // Broadcast the waiting status via WebSocket
+        $wsMessage = json_encode(['call_id' => $call_id, 'status' => 'waiting']);
+        // Assuming you have a WebSocket server running, send this message to the connected clients
+        $webSocketServer->broadcast($wsMessage); // Adjust this line based on your WebSocket setup
+
         // Respond with success
         http_response_code(200); // OK
         echo json_encode([
@@ -79,3 +84,4 @@ function verify_jwt_token($client_uuid, $token, $pdo) {
         return false;
     }
 }
+?>

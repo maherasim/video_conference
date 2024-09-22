@@ -44,6 +44,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         ");
         $stmt->execute([$call_id]);
 
+        // Broadcast the call ended status via WebSocket
+        $wsMessage = json_encode(['call_id' => $call_id, 'status' => 'completed']);
+        // Assuming you have a WebSocket server running, send this message to the connected clients
+        $webSocketServer->broadcast($wsMessage); // Adjust this line based on your WebSocket setup
+
         // Respond with success
         http_response_code(200); // OK
         echo json_encode(['status' => 'success', 'message' => 'Call ended']);
