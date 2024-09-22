@@ -1,4 +1,4 @@
-<?php
+<?php 
 include 'connection.php'; // Ensure this line is at the top
 header('Content-Type: application/json');
 
@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         // Check if the call exists and is not claimed by another support
-        $stmt = $pdo->prepare(query: "SELECT * FROM calls WHERE call_id = ? AND call_status = 'waiting'");
+        $stmt = $pdo->prepare("SELECT * FROM calls WHERE call_id = ? AND call_status = 'waiting'");
         $stmt->execute([$call_id]);
         $call = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -48,6 +48,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $support_stmt = $pdo->prepare("SELECT name FROM customer_support WHERE uuid = ?");
         $support_stmt->execute([$support_id]);
         $support = $support_stmt->fetch(PDO::FETCH_ASSOC);
+
+        // Send WebSocket message to notify all clients
+        $this->sendWebSocketNotification($call_id, $client['name'], $support['name']);
 
         // Respond with success
         http_response_code(200); // OK
@@ -83,5 +86,28 @@ function verify_support_token($support_id, $token, $pdo) {
     } catch (PDOException $e) {
         // Handle any potential database errors
         return false;
+    }
+}
+
+// Function to send WebSocket notification
+function sendWebSocketNotification($call_id, $client_name, $support_name) {
+    // WebSocket server URL
+    $ws_url = 'ws://your_websocket_server:8080'; // Change this to your WebSocket server address
+
+    // Create a WebSocket connection
+    $client = new WebSocket\Client($ws_url);
+    
+    $message = json_encode([
+        'action' => 'claim_call',
+        'call_id' => $call_id,
+        'client_name' => $client_name,
+        'support_name' => $support_name
+    ]);
+
+    try {
+        $client->send($message);
+        $client->close();
+    } catch (Exception $e) {
+        error_log('WebSocket Error: ' . $e->getMessage());
     }
 }
