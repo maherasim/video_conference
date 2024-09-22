@@ -1,44 +1,51 @@
 <?php
-require 'vendor/autoload.php'; // Include Composer's autoloader
+require 'vendor/autoload.php'; // Ensure you have installed the required libraries
 
 use Ratchet\MessageComponentInterface;
 use Ratchet\ConnectionInterface;
-use React\Socket\Server as ReactorServer;
-use React\EventLoop\Factory;
 
-class CallWebSocket implements MessageComponentInterface {
+class WebSocketServer implements MessageComponentInterface {
     protected $clients;
 
     public function __construct() {
-        $this->clients = new \SplObjectStorage;
+        $this->clients = new \SplObjectStorage; // Collection of connected clients
     }
 
     public function onOpen(ConnectionInterface $conn) {
+        // Store the new connection
         $this->clients->attach($conn);
     }
 
     public function onMessage(ConnectionInterface $from, $msg) {
-        // Handle incoming messages if needed
+        // Decode incoming message
+        $data = json_decode($msg, true);
+        
+        // Example: Handle call claimed notification
+        if (isset($data['action']) && $data['action'] === 'claim_call') {
+            // Notify all clients about the call claim
+            foreach ($this->clients as $client) {
+                if ($client !== $from) {
+                    $client->send(json_encode([
+                        'status' => 'success',
+                        'message' => 'Call claimed by support',
+                        'call_id' => $data['call_id'],
+                        'support_name' => $data['support_name']
+                    ]));
+                }
+            }
+        }
     }
 
     public function onClose(ConnectionInterface $conn) {
+        // Remove the connection
         $this->clients->detach($conn);
     }
 
     public function onError(ConnectionInterface $conn, \Exception $e) {
         $conn->close();
     }
-
-    public function broadcast($data) {
-        foreach ($this->clients as $client) {
-            $client->send($data);
-        }
-    }
 }
 
-// Setup server
-$loop = Factory::create();
-$server = new ReactorServer("0.0.0.0:8080", $loop);
-$wsServer = new Ratchet\App($loop);
-$wsServer->route('/call', new CallWebSocket(), ['*']);
-$loop->run();
+// Run the WebSocket server
+$server = IoServer::factory(new HttpServer(new WsServer(new WebSocketServer())), 8080);
+$server->run();
