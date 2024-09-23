@@ -35,11 +35,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
         $stmt->execute();
         $incomingCalls = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Ongoing calls logic remains the same
+        // Fetch only ongoing calls with the status 'ongoing'
         $stmt = $pdo->prepare("SELECT c.call_id, u.name as client_name, c.call_status 
                                FROM calls c 
                                JOIN users u ON c.client_id = u.id
-                               where  c.call_status = 'ongoing'");
+                               WHERE c.call_status = 'ongoing'");
         $stmt->execute();
         $ongoingCalls = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
