@@ -27,12 +27,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             exit;
         }
 
+        // Fetch only incoming calls with the status 'waiting'
         $stmt = $pdo->prepare("SELECT c.call_id, u.name as client_name, c.call_status 
                                FROM calls c 
-                               LEFT JOIN users u ON c.client_id = u.id");
+                               LEFT JOIN users u ON c.client_id = u.id
+                               WHERE c.call_status = 'waiting'");
         $stmt->execute();
         $incomingCalls = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        // Ongoing calls logic remains the same
         $stmt = $pdo->prepare("SELECT c.call_id, u.name as client_name, c.call_status 
                                FROM calls c 
                                JOIN users u ON c.client_id = u.id");
