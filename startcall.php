@@ -2,11 +2,16 @@
 include 'connection.php'; 
 header('Content-Type: application/json');
 
+// Enable error reporting (only use in development)
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $input = file_get_contents('php://input');
     $data = json_decode($input, true);
 
-    $client_uuid = $data['client_id'] ?? ''; // Now using UUID instead of simple ID
+    $client_uuid = $data['client_id'] ?? ''; // Use UUID
     $client_token = $data['client_token'] ?? '';
 
     // Validate input
@@ -24,9 +29,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             exit;
         }
 
-        // Check if client already has an ongoing or waiting call
+        // Check if the client already has an ongoing or waiting call
         $stmt = $pdo->prepare("SELECT * FROM calls WHERE client_id = ? AND call_status IN ('waiting', 'claimed')");
-        $stmt->execute([$client_uuid]); // Use UUID here for the client check
+        $stmt->execute([$client_uuid]);
         $existingCall = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($existingCall) {
@@ -46,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt = $pdo->prepare("INSERT INTO calls (call_id, client_id, call_status, created_at, call_start_time) VALUES (?, ?, 'waiting', NOW(), NOW())");
         $stmt->execute([$call_id, $client_uuid]);
 
-        // Respond with success first (to avoid server error if broadcasting fails)
+        // Respond with success first to ensure data is sent even if WebSocket fails
         http_response_code(200); // OK
         echo json_encode([
             'status' => 'success',
@@ -54,19 +59,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             'message' => 'Waiting for support to join'
         ]);
 
-        // Try broadcasting the message via WebSocket (catch any broadcasting issues)
+        // WebSocket broadcasting
         try {
             $wsMessage = json_encode(['call_id' => $call_id, 'status' => 'waiting']);
-            // Broadcast this message to connected clients
-            $webSocketServer->broadcast($wsMessage); // Adjust this based on your WebSocket setup
+
+            // Check if WebSocket server object is initialized
+            if (isset($webSocketServer)) {
+                $webSocketServer->broadcast($wsMessage); // Assuming you have a WebSocket setup
+            } else {
+                error_log('WebSocket server not initialized.');
+            }
         } catch (Exception $e) {
-            // Log or handle WebSocket errors, but do not stop the flow
-            error_log("WebSocket error: " . $e->getMessage());
+            error_log("WebSocket error: " . $e->getMessage()); // Log WebSocket errors
         }
 
     } catch (PDOException $e) {
+        // Log the database error for troubleshooting
+        error_log('Database error: ' . $e->getMessage());
+        
         http_response_code(500); // Internal Server Error
-        echo json_encode(['status' => 'error', 'code' => 500, 'message' => 'Database error: ' . $e->getMessage()]);
+        echo json_encode(['status' => 'error', 'code' => 500, 'message' => 'Internal Server Error, please try again later.']);
     }
 }
 
@@ -86,9 +98,7 @@ function verify_jwt_token($client_uuid, $token, $pdo) {
         // If the token matches, return true
         return true;
     } catch (PDOException $e) {
+        error_log('Token verification error: ' . $e->getMessage()); // Log the error
         return false;
     }
 }
-
-
-?>
