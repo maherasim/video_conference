@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         // Check if client already has an ongoing or waiting call
-        $stmt = $pdo->prepare("SELECT * FROM calls WHERE client_id = ? AND call_status IN ('waiting', 'ongoing')");
+        $stmt = $pdo->prepare("SELECT * FROM calls WHERE client_id = ? AND call_status IN ('waiting', 'claimed')");
         $stmt->execute([$client_uuid]); // Use UUID here for the client check
         $existingCall = $stmt->fetch(PDO::FETCH_ASSOC);
 
