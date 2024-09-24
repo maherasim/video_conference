@@ -111,3 +111,4 @@ function sendWebSocketNotification($call_id, $client_name, $support_name) {
         error_log('WebSocket Error: ' . $e->getMessage());
     }
 }
+ 
