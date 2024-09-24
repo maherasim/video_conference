@@ -1,4 +1,5 @@
-<?php
+<?php 
+
 include 'connection.php';  
 header('Content-Type: application/json');
 
@@ -35,13 +36,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
         $stmt->execute();
         $incomingCalls = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Fetch only ongoing calls with the status 'ongoing'
+        // Fetch ongoing calls where call_status is 'ongoing', 'inprogress', or 'claimed'
         $stmt = $pdo->prepare("SELECT c.call_id, u.name as client_name, c.call_status 
                                FROM calls c 
                                JOIN users u ON c.client_id = u.id
-                               WHERE c.call_status = 'ongoing'");
+                               WHERE c.call_status IN ('ongoing', 'inprogress', 'claimed')");
         $stmt->execute();
         $ongoingCalls = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Replace 'inprogress' and 'claimed' with 'ongoing' in the response
+        foreach ($ongoingCalls as &$call) {
+            if ($call['call_status'] === 'inprogress' || $call['call_status'] === 'claimed') {
+                $call['call_status'] = 'ongoing';
+            }
+        }
 
         http_response_code(200);  
         echo json_encode([
@@ -66,3 +74,7 @@ function verify_support_jwt_token($token, $pdo) {
         return false;
     }
 }
+
+
+
+?>
