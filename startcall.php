@@ -1,3 +1,4 @@
+<?php 
 include 'connection.php'; 
 header('Content-Type: application/json');
 
@@ -88,3 +89,6 @@ function verify_jwt_token($client_uuid, $token, $pdo) {
         return false;
     }
 }
+
+
+?>
