@@ -1,11 +1,6 @@
 <?php 
-include 'connection.php'; 
+include 'connection.php'; // Ensure this line is at the top
 header('Content-Type: application/json');
-
-// Enable error reporting for development
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $input = file_get_contents('php://input');
@@ -54,13 +49,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $support_stmt->execute([$support_id]);
         $support = $support_stmt->fetch(PDO::FETCH_ASSOC);
 
-        // Check if both client and support names were fetched successfully
-        if (!$client || !$support) {
-            throw new Exception('Failed to retrieve client or support names.');
-        }
-
         // Send WebSocket message to notify all clients
-        sendWebSocketNotification($call_id, $client['name'], $support['name']);
+        $this->sendWebSocketNotification($call_id, $client['name'], $support['name']);
 
         // Respond with success
         http_response_code(200); // OK
@@ -72,17 +62,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 'support_name' => $support['name']
             ]
         ]);
-
     } catch (PDOException $e) {
-        // Log the error and return a 500 response
-        error_log('Database error: ' . $e->getMessage());
         http_response_code(500); // Internal Server Error
         echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
-    } catch (Exception $e) {
-        // Log any other errors and return a 500 response
-        error_log('Error: ' . $e->getMessage());
-        http_response_code(500); // Internal Server Error
-        echo json_encode(['status' => 'error', 'message' => 'Error: ' . $e->getMessage()]);
     }
 }
 
@@ -102,8 +84,7 @@ function verify_support_token($support_id, $token, $pdo) {
         // If the token matches, return true
         return true;
     } catch (PDOException $e) {
-        // Log the error
-        error_log('Token verification error: ' . $e->getMessage());
+        // Handle any potential database errors
         return false;
     }
 }
@@ -111,7 +92,7 @@ function verify_support_token($support_id, $token, $pdo) {
 // Function to send WebSocket notification
 function sendWebSocketNotification($call_id, $client_name, $support_name) {
     // WebSocket server URL
-    $ws_url = 'ws://84.247.187.38:8080'; // Change this to your WebSocket server address
+    $ws_url = 'ws://your_websocket_server:8080'; // Change this to your WebSocket server address
 
     // Create a WebSocket connection
     $client = new WebSocket\Client($ws_url);
