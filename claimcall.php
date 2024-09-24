@@ -92,7 +92,7 @@ function verify_support_token($support_id, $token, $pdo) {
 // Function to send WebSocket notification
 function sendWebSocketNotification($call_id, $client_name, $support_name) {
     // WebSocket server URL
-    $ws_url = 'ws://your_websocket_server:8080'; // Change this to your WebSocket server address
+    $ws_url = 'ws://84.247.187.38:8080'; // Change this to your WebSocket server address
 
     // Create a WebSocket connection
     $client = new WebSocket\Client($ws_url);
