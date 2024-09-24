@@ -1,4 +1,4 @@
-<?php
+<?php 
 include 'connection.php';  
 header('Content-Type: application/json');
 
@@ -27,15 +27,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             exit;
         }
 
-        // Fetch only incoming calls with the status 'waiting'
+        // Fix collation issue by using COLLATE keyword to ensure both columns are using the same collation
         $stmt = $pdo->prepare("SELECT c.call_id, u.name as client_name, c.call_status 
                                FROM calls c 
-                               LEFT JOIN users u ON c.client_id = u.uuid
+                               LEFT JOIN users u ON c.client_id COLLATE utf8mb4_unicode_ci = u.uuid COLLATE utf8mb4_unicode_ci
                                WHERE c.call_status = 'waiting'");
         $stmt->execute();
         $incomingCalls = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Fetch only ongoing calls with the status 'ongoing'
+        // Fetch only ongoing calls without changing the logic
         $stmt = $pdo->prepare("SELECT c.call_id, u.name as client_name, c.call_status 
                                FROM calls c 
                                JOIN users u ON c.client_id = u.id
@@ -66,3 +66,7 @@ function verify_support_jwt_token($token, $pdo) {
         return false;
     }
 }
+
+
+
+?>
