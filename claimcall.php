@@ -6,6 +6,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $input = file_get_contents('php://input');
     $data = json_decode($input, true);
 
+    // Log incoming data
+    error_log(json_encode($data)); // Log incoming data
+
     $call_id = $data['call_id'] ?? '';
     $support_id = $data['support_id'] ?? '';
     $support_token = $data['support_token'] ?? '';
@@ -35,6 +38,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             echo json_encode(['status' => 'error', 'message' => 'Call already claimed by another support or does not exist.']);
             exit;
         }
+
+        // Log claiming details before executing the update
+        error_log("Claiming call ID: $call_id by support ID: $support_id"); // Log claim details
 
         // Claim the call by updating the status and assigning support_id
         $stmt = $pdo->prepare("UPDATE calls SET support_id = ?, call_status = 'claimed', updated_at = NOW() WHERE call_id = ?");
@@ -91,6 +97,7 @@ function verify_support_token($support_id, $token, $pdo) {
 
 // Function to send WebSocket notification
 function sendWebSocketNotification($call_id, $client_name, $support_name) {
+    // WebSocket server URL
     $ws_url = 'ws://84.247.187.38:8080'; // Your WebSocket server URL
 
     try {
@@ -115,4 +122,3 @@ function sendWebSocketNotification($call_id, $client_name, $support_name) {
         error_log('WebSocket communication failed: ' . $e->getMessage());
     }
 }
-
