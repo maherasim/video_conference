@@ -92,23 +92,27 @@ function verify_support_token($support_id, $token, $pdo) {
 // Function to send WebSocket notification
 function sendWebSocketNotification($call_id, $client_name, $support_name) {
     // WebSocket server URL
-    $ws_url = 'ws://84.247.187.38:8080'; // Change this to your WebSocket server address
-
-    // Create a WebSocket connection
-    $client = new WebSocket\Client($ws_url);
-    
-    $message = json_encode([
-        'action' => 'claim_call',
-        'call_id' => $call_id,
-        'client_name' => $client_name,
-        'support_name' => $support_name
-    ]);
+    $ws_url = 'ws://84.247.187.38:8080'; // Your WebSocket server URL
 
     try {
+        // Create a WebSocket connection
+        $client = new WebSocket\Client($ws_url);
+
+        $message = json_encode([
+            'action' => 'claim_call',
+            'call_id' => $call_id,
+            'client_name' => $client_name,
+            'support_name' => $support_name
+        ]);
+
+        // Send the WebSocket message
         $client->send($message);
         $client->close();
     } catch (Exception $e) {
+        // Log the WebSocket error for debugging
         error_log('WebSocket Error: ' . $e->getMessage());
+        throw new Exception('WebSocket communication failed: ' . $e->getMessage()); // Rethrow the exception for the catch block
     }
 }
+
  
