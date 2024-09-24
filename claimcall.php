@@ -1,5 +1,5 @@
 <?php 
-include 'connection.php'; // Ensure this line is at the top
+include 'connection.php'; 
 header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     try {
-        // Verify the support token using the function
+        // Verify the support token
         if (!verify_support_token($support_id, $support_token, $pdo)) {
             http_response_code(401); // Unauthorized
             echo json_encode(['status' => 'error', 'message' => 'Invalid token.']);
@@ -49,8 +49,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $support_stmt->execute([$support_id]);
         $support = $support_stmt->fetch(PDO::FETCH_ASSOC);
 
-        // Send WebSocket message to notify all clients
-        $this->sendWebSocketNotification($call_id, $client['name'], $support['name']);
+        // Send WebSocket notification to notify all clients
+        sendWebSocketNotification($call_id, $client['name'], $support['name']);
 
         // Respond with success
         http_response_code(200); // OK
@@ -91,7 +91,6 @@ function verify_support_token($support_id, $token, $pdo) {
 
 // Function to send WebSocket notification
 function sendWebSocketNotification($call_id, $client_name, $support_name) {
-    // WebSocket server URL
     $ws_url = 'ws://84.247.187.38:8080'; // Your WebSocket server URL
 
     try {
@@ -111,8 +110,9 @@ function sendWebSocketNotification($call_id, $client_name, $support_name) {
     } catch (Exception $e) {
         // Log the WebSocket error for debugging
         error_log('WebSocket Error: ' . $e->getMessage());
-        throw new Exception('WebSocket communication failed: ' . $e->getMessage()); // Rethrow the exception for the catch block
+        // Comment out the exception throw for now
+        // throw new Exception('WebSocket communication failed: ' . $e->getMessage());
+        error_log('WebSocket communication failed: ' . $e->getMessage());
     }
 }
 
- 

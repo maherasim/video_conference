@@ -2,7 +2,7 @@
 include 'connection.php'; 
 header('Content-Type: application/json');
 
-// Enable error reporting (only use in development)
+// Enable error reporting (only in development)
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -63,9 +63,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         try {
             $wsMessage = json_encode(['call_id' => $call_id, 'status' => 'waiting']);
 
-            // Check if WebSocket server object is initialized
+            // Ensure WebSocket server object is initialized
             if (isset($webSocketServer)) {
-                $webSocketServer->broadcast($wsMessage); // Assuming you have a WebSocket setup
+                $webSocketServer->broadcast($wsMessage); // Assuming WebSocket setup exists
             } else {
                 error_log('WebSocket server not initialized.');
             }
