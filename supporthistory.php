@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             LEFT JOIN feedback f ON c.call_id = f.call_id
             WHERE c.support_id = (
                 SELECT uuid FROM customer_support WHERE token = ? COLLATE utf8mb4_unicode_ci
-            )
+            ) COLLATE utf8mb4_unicode_ci
         ");
         $stmt->execute([$token]);
         $callHistory = $stmt->fetchAll(PDO::FETCH_ASSOC);
