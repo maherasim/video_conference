@@ -38,29 +38,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             FROM calls c
             LEFT JOIN users cl ON c.client_id = cl.id
             LEFT JOIN feedback f ON c.call_id = f.call_id
-            WHERE c.support_id = (SELECT uuid FROM customer_support WHERE token = ?)
+            WHERE c.support_id = (
+                SELECT uuid FROM customer_support WHERE token = ? COLLATE utf8mb4_unicode_ci
+            )
         ");
         $stmt->execute([$token]);
         $callHistory = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        // Format the response to match your expected output
-        $formattedCallHistory = array_map(function ($call) {
-            return [
-                'call_id' => $call['call_id'],
-                'client_name' => $call['client_name'],
-                'call_status' => $call['call_status'],
-                'call_start_time' => $call['call_start_time'],
-                'call_end_time' => $call['call_end_time'],
-                'rating' => $call['rating'] ?? null,
-                'feedback' => $call['feedback'] ?? null
-            ];
-        }, $callHistory);
 
         // Respond with the call history
         http_response_code(200); // OK
         echo json_encode([
             'status' => 'success',
-            'call_history' => $formattedCallHistory
+            'call_history' => $callHistory
         ]);
     } catch (PDOException $e) {
         http_response_code(500); // Internal Server Error
@@ -71,8 +60,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
 // Function to verify the support token from the 'customer_support' table
 function verify_support_jwt_token($token, $pdo) {
     try {
-        // Verify token in the 'customer_support' table
-        $stmt = $pdo->prepare("SELECT token FROM customer_support WHERE token = ?");
+        // Use the token field for verification for support staff
+        $stmt = $pdo->prepare("SELECT token FROM customer_support WHERE token = ? COLLATE utf8mb4_unicode_ci");
         $stmt->execute([$token]);
         $support = $stmt->fetch(PDO::FETCH_ASSOC);
 
