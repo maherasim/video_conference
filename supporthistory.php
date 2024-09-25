@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
         $stmt = $pdo->prepare("
             SELECT c.call_id, cl.name AS client_name, c.call_status, c.call_start_time, c.call_end_time, f.rating, f.feedback
             FROM calls c
-            LEFT JOIN users cl ON c.client_id = cl.uuid
+            LEFT JOIN users cl ON c.client_id = cl.id
             LEFT JOIN feedback f ON c.call_id = f.call_id
             WHERE c.support_id = (SELECT id FROM customer_support WHERE token = ?)
         ");
