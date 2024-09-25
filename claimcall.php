@@ -1,5 +1,5 @@
 <?php 
- require 'vendor/autoload.php';
+require 'vendor/autoload.php';
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -70,7 +70,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             'message' => 'Call claimed by support',
             'call_details' => [
                 'client_name' => $client['name'],
-                'support_name' => $support['name']
+                'support_name' => $support['name'],
+                'support_id' => $support_id // Include the support_id in the response
             ]
         ]);
     } catch (PDOException $e) {
