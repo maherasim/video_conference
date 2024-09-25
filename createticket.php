@@ -32,9 +32,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // Generate a unique ticket ID
         $ticket_id = 'ticket_' . uniqid();
 
-        // Insert the ticket into the database, changing client_id to clients_id
+        // Insert the ticket into the database
         $stmt = $pdo->prepare("
-            INSERT INTO tickets (ticket_id, clients_id, status, issue_description)
+            INSERT INTO tickets (ticket_id, client_id, status, issue_description)
             VALUES (?, ?, ?, ?)
         ");
         $stmt->execute([$ticket_id, $client_id, $status, $issue_description]);
@@ -69,5 +69,3 @@ function verify_client_uuid($client_uuid, $client_token, $pdo) {
     }
     return false; // Invalid UUID or token
 }
-
-?>
