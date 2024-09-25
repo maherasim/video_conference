@@ -7,6 +7,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
 
     // Get the Authorization header
     $headers = apache_request_headers();
+    error_log(json_encode($headers)); // Log headers for debugging
     $authHeader = $headers['Authorization'] ?? '';
 
     if (empty($authHeader)) {
@@ -16,7 +17,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     }
 
     // Extract the token from the Authorization header
-    list($bearer, $token) = explode(' ', $authHeader);
+    if (strpos($authHeader, 'Bearer ') !== false) {
+        list($bearer, $token) = explode(' ', $authHeader);
+    } else {
+        http_response_code(401); // Unauthorized
+        echo json_encode(['status' => 'error', 'message' => 'Invalid Authorization header format']);
+        exit;
+    }
 
     if (strcasecmp($bearer, 'Bearer') != 0 || empty($token)) {
         http_response_code(401); // Unauthorized
@@ -25,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     }
 
     try {
-        // Verify the support token (JWT token check)
+        // Verify the support token (check in the database)
         if (!verify_support_jwt_token($token, $pdo)) {
             http_response_code(401); // Unauthorized
             echo json_encode(['status' => 'error', 'message' => 'Invalid token']);
@@ -38,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             FROM calls c
             LEFT JOIN users cl ON c.client_id = cl.id
             LEFT JOIN feedback f ON c.call_id = f.call_id
-            WHERE c.support_id = (SELECT uuid FROM customer_support WHERE token = ?)
+            WHERE c.support_id = (SELECT id FROM customer_support WHERE token = ?)
         ");
         $stmt->execute([$token]);
         $callHistory = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -55,10 +62,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     }
 }
 
-// Function to verify the support token from the 'users' table
+// Function to verify the support token from the 'customer_support' table
 function verify_support_jwt_token($token, $pdo) {
     try {
-        // Use the remember_token field for token verification for support staff
+        // Use the token field for token verification for support staff
         $stmt = $pdo->prepare("SELECT token FROM customer_support WHERE token = ?");
         $stmt->execute([$token]);
         $support = $stmt->fetch(PDO::FETCH_ASSOC);
