@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             exit;
         }
 
-        // Prepare SQL query for fetching call history
+        // Fetch call history for the support (completed or ongoing calls)
         $stmt = $pdo->prepare("
             SELECT c.call_id, cl.name AS client_name, c.call_status, c.call_start_time, c.call_end_time, f.rating, f.feedback
             FROM calls c
@@ -40,58 +40,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             LEFT JOIN feedback f ON c.call_id = f.call_id
             WHERE c.support_id = (SELECT id FROM customer_support WHERE token = ?)
         ");
-
-        // Check for query preparation errors
-        if (!$stmt) {
-            $errorInfo = $pdo->errorInfo();
-            error_log("Query preparation failed: " . json_encode($errorInfo));
-            http_response_code(500); // Internal Server Error
-            echo json_encode(['status' => 'error', 'message' => 'Query preparation failed.']);
-            exit;
-        }
-
-        // Log the query with the token
-        error_log("
-            SQL Query: SELECT c.call_id, cl.name AS client_name, c.call_status, c.call_start_time, c.call_end_time, f.rating, f.feedback
-            FROM calls c
-            LEFT JOIN users cl ON c.client_id = cl.id
-            LEFT JOIN feedback f ON c.call_id = f.call_id
-            WHERE c.support_id = (SELECT id FROM customer_support WHERE token = '$token')
-        ");
-
-        // Execute the query
-        $executed = $stmt->execute([$token]);
-
-        // Check for query execution errors
-        if (!$executed) {
-            $errorInfo = $stmt->errorInfo();
-            error_log("Query execution failed: " . json_encode($errorInfo));
-            http_response_code(500); // Internal Server Error
-            echo json_encode(['status' => 'error', 'message' => 'Query execution failed.']);
-            exit;
-        }
-
-        // Fetch the results
+        $stmt->execute([$token]);
         $callHistory = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Log the result
-        if (empty($callHistory)) {
-            error_log("No results found for the token: $token");
-        } else {
-            error_log("Query results: " . json_encode($callHistory));
-        }
+        // Format the response to match your expected output
+        $formattedCallHistory = array_map(function ($call) {
+            return [
+                'call_id' => $call['call_id'],
+                'client_name' => $call['client_name'],
+                'call_status' => $call['call_status'],
+                'call_start_time' => $call['call_start_time'],
+                'call_end_time' => $call['call_end_time'],
+                'rating' => $call['rating'] ?? null,
+                'feedback' => $call['feedback'] ?? null
+            ];
+        }, $callHistory);
 
         // Respond with the call history
         http_response_code(200); // OK
         echo json_encode([
             'status' => 'success',
-            'call_history' => $callHistory
+            'call_history' => $formattedCallHistory
         ]);
-
     } catch (PDOException $e) {
         http_response_code(500); // Internal Server Error
         echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
-        error_log('Database Error: ' . $e->getMessage()); // Log database error
     }
 }
 
@@ -103,17 +76,8 @@ function verify_support_jwt_token($token, $pdo) {
         $stmt->execute([$token]);
         $support = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // Log token verification result
-        if ($support) {
-            error_log("Token verified for support ID: " . json_encode($support));
-            return true;
-        } else {
-            error_log("Token verification failed for token: $token");
-            return false;
-        }
-
+        return $support ? true : false;
     } catch (PDOException $e) {
-        error_log('Token verification failed: ' . $e->getMessage());
         return false;
     }
 }
