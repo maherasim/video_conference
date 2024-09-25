@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         // Insert the ticket into the database
         $stmt = $pdo->prepare("
-            INSERT INTO tickets (ticket_id, client_id, status, issue_description)
+            INSERT INTO tickets (ticket_id, clients_id, status, issue_description)
             VALUES (?, ?, ?, ?)
         ");
         $stmt->execute([$ticket_id, $client_id, $status, $issue_description]);
