@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             FROM calls c
             LEFT JOIN users cl ON c.client_id = cl.id
             LEFT JOIN feedback f ON c.call_id = f.call_id
-            WHERE c.support_id = (SELECT id FROM customer_support WHERE token = ?)
+            WHERE c.support_id = (SELECT uuid FROM customer_support WHERE token = ?)
         ");
         $stmt->execute([$token]);
         $callHistory = $stmt->fetchAll(PDO::FETCH_ASSOC);
