@@ -116,12 +116,14 @@ function verify_support_token($support_id, $token, $pdo) {
     }
 }
 
-error_log("Calling sendWebSocketNotification with parameters: call_id = $call_id, client_name = $client_name, support_name = $support_name, support_id = $support_id");
- function sendWebSocketNotification($call_id, $client_name, $support_name, $support_id) {
+// Function to send WebSocket notification
+function sendWebSocketNotification($call_id, $client_name, $support_name, $support_id) {
     // Log the entry into the function
-     
-    // Log the support_id
+    error_log("Entering sendWebSocketNotification function");
     
+    // Log the support_id
+    error_log("Debugging support_id: " . json_encode($support_id)); // Log the support_id
+
     $ws_url = 'ws://84.247.187.38:8080'; // Your WebSocket server URL
 
     try {
