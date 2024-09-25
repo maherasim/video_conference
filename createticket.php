@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         // Insert the ticket into the database
         $stmt = $pdo->prepare("
-            INSERT INTO tickets (ticket_id, client_id, status, issue_description)
+            INSERT INTO tickets (ticket_id, clients_id, status, issue_description)
             VALUES (?, ?, ?, ?)
         ");
         $stmt->execute([$ticket_id, $client_id, $status, $issue_description]);
@@ -48,8 +48,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         ]);
     } catch (PDOException $e) {
         http_response_code(500); // Internal Server Error
-        echo json_encode(['status' => 'error', 'message' => 'Unable to create a ticket at this time. Please try again later.']);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Unable to create a ticket at this time. Please try again later.',
+            'error' => $e->getMessage() // Show the actual error
+        ]);
     }
+    
 }
 
 // Function to verify client UUID and token
