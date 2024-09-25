@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
 function verify_support_jwt_token($token, $pdo) {
     try {
         // Use the token field for verification for support staff
-        $stmt = $pdo->prepare("SELECT remember_token FROM users WHERE token = ? COLLATE utf8mb4_unicode_ci");
+        $stmt = $pdo->prepare("SELECT remember_token FROM users WHERE remember_token = ? COLLATE utf8mb4_unicode_ci");
         $stmt->execute([$token]);
         $support = $stmt->fetch(PDO::FETCH_ASSOC);
 
