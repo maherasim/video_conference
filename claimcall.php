@@ -114,6 +114,7 @@ function sendWebSocketNotification($call_id, $client_name, $support_name) {
             'action' => 'claim_call',
             'call_id' => $call_id,
             'client_name' => $client_name,
+            'support_id' => $support_id ,
             'support_name' => $support_name
         ]);
 
