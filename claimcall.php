@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $support = $support_stmt->fetch(PDO::FETCH_ASSOC);
 
         // Send WebSocket notification to notify all clients
-        sendWebSocketNotification($call_id, $client['name'], $support['name']);
+        sendWebSocketNotification($call_id, $client['name'], $support['name'], $support_id); // Pass support_id
 
         // Respond with success
         http_response_code(200); // OK
@@ -102,7 +102,7 @@ function verify_support_token($support_id, $token, $pdo) {
 }
 
 // Function to send WebSocket notification
-function sendWebSocketNotification($call_id, $client_name, $support_name,$support_id) {
+function sendWebSocketNotification($call_id, $client_name, $support_name, $support_id) {
     // WebSocket server URL
     $ws_url = 'ws://84.247.187.38:8080'; // Your WebSocket server URL
 
@@ -114,8 +114,8 @@ function sendWebSocketNotification($call_id, $client_name, $support_name,$suppor
             'action' => 'claim_call',
             'call_id' => $call_id,
             'client_name' => $client_name,
-            'support_id' => $support_id ,
-            'support_name' => $support_name
+            'support_name' => $support_name,
+            'support_id' => $support_id // Include support_id in WebSocket message
         ]);
 
         // Send the WebSocket message
