@@ -118,7 +118,8 @@ function verify_support_token($support_id, $token, $pdo) {
 
 // Function to send WebSocket notification
 function sendWebSocketNotification($call_id, $client_name, $support_name, $support_id) {
-    // WebSocket server URL
+    error_log("Debugging support_id: " . $support_id); // Log the support_id
+
     $ws_url = 'ws://84.247.187.38:8080'; // Your WebSocket server URL
 
     try {
