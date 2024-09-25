@@ -18,6 +18,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $support_id = $data['support_id'] ?? '';
     $support_token = $data['support_token'] ?? '';
 
+    // Log validation results
+    error_log("Parsed values - Call ID: $call_id, Support ID: $support_id, Support Token: $support_token");
+
     // Validate input
     if (empty($call_id) || empty($support_id) || empty($support_token)) {
         http_response_code(400); // Bad Request
@@ -126,7 +129,7 @@ function sendWebSocketNotification($call_id, $client_name, $support_name, $suppo
             'action' => 'claim_call',
             'call_id' => $call_id,
             'client_name' => $client_name,
-            'support_id' => $support_id ,
+            'support_id' => $support_id,
             'support_name' => $support_name,
         ]);
 
