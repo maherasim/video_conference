@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             LEFT JOIN users cl ON c.support_id COLLATE utf8mb4_unicode_ci = cl.uuid COLLATE utf8mb4_unicode_ci
             LEFT JOIN feedback f ON c.call_id = f.call_id
             WHERE c.support_id = (
-                SELECT uuid FROM users WHERE token = ? COLLATE utf8mb4_unicode_ci
+                SELECT uuid FROM users WHERE remember_token = ? COLLATE utf8mb4_unicode_ci
             ) COLLATE utf8mb4_unicode_ci
         ");
         $stmt->execute([$token]);
