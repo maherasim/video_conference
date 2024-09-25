@@ -16,66 +16,58 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     }
 
     // Extract the token from the Authorization header
-    list($bearer, $token) = explode(' ', $authHeader);
-
-    if (strcasecmp($bearer, 'Bearer') != 0 || empty($token)) {
+    list($bearer, $client_token) = explode(' ', $authHeader);
+    
+    if (strcasecmp($bearer, 'Bearer') != 0 || empty($client_token)) {
         http_response_code(401); // Unauthorized
         echo json_encode(['status' => 'error', 'message' => 'Invalid Authorization header']);
         exit;
     }
 
     try {
-        // Verify the support token (JWT token check)
-        if (!verify_support_jwt_token($token, $pdo)) {
+        // Verify the client token (JWT token check)
+        if (!verify_client_jwt_token($client_token, $pdo)) {
             http_response_code(401); // Unauthorized
             echo json_encode(['status' => 'error', 'message' => 'Invalid token']);
             exit;
         }
 
-        // Fetch call history for the support (completed or ongoing calls)
+        // Fetch call history for the client (completed or canceled calls)
         $stmt = $pdo->prepare("
-            SELECT c.call_id, cl.name AS support_name, c.call_status, c.call_start_time, c.call_end_time, f.rating, f.feedback
-            FROM calls c
-            LEFT JOIN users cl ON c.support_id COLLATE utf8mb4_unicode_ci = cl.uuid COLLATE utf8mb4_unicode_ci
-            LEFT JOIN feedback f ON c.call_id = f.call_id
-            WHERE c.support_id = (
-                SELECT uuid FROM users WHERE remember_token = ? COLLATE utf8mb4_unicode_ci
-            ) COLLATE utf8mb4_unicode_ci
-        ");
-        $stmt->execute([$token]);
+        SELECT c.call_id, s.name AS support_name, c.call_status, c.call_start_time, c.call_end_time, f.rating, f.feedback
+        FROM calls c
+        LEFT JOIN users s ON c.support_id COLLATE utf8mb4_unicode_ci = s.uuid COLLATE utf8mb4_unicode_ci
+        LEFT JOIN feedback f ON c.call_id = f.call_id
+        WHERE c.client_id COLLATE utf8mb4_unicode_ci = (
+            SELECT uuid FROM users WHERE remember_token = ? COLLATE utf8mb4_unicode_ci
+        ) COLLATE utf8mb4_unicode_ci
+    ");
+    
+    
+        $stmt->execute([$client_token]);
         $callHistory = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Check if call history is empty
-        if (empty($callHistory)) {
-            http_response_code(404); // Not Found
-            echo json_encode([
-                'status' => 'success',
-                'call_history' => [], // Return empty array if no records found
-                'message' => 'No call history found for this cleint.'
-            ]);
-        } else {
-            // Respond with the call history
-            http_response_code(200); // OK
-            echo json_encode([
-                'status' => 'success',
-                'call_history' => $callHistory
-            ]);
-        }
+        // Respond with the call history
+        http_response_code(200); // OK
+        echo json_encode([
+            'status' => 'success',
+            'call_history' => $callHistory
+        ]);
     } catch (PDOException $e) {
         http_response_code(500); // Internal Server Error
         echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
     }
 }
 
-// Function to verify the support token from the 'cleint' table
-function verify_support_jwt_token($token, $pdo) {
+// Function to verify the client token from the 'clients' table
+function verify_client_jwt_token($token, $pdo) {
     try {
-        // Use the token field for verification for support staff
-        $stmt = $pdo->prepare("SELECT remember_token FROM users WHERE token = ? COLLATE utf8mb4_unicode_ci");
+        // Assuming client tokens are stored in the 'clients' table
+        $stmt = $pdo->prepare("SELECT remember_token FROM users WHERE remember_token = ?");
         $stmt->execute([$token]);
-        $support = $stmt->fetch(PDO::FETCH_ASSOC);
+        $client = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        return $support ? true : false;
+        return $client ? true : false;
     } catch (PDOException $e) {
         return false;
     }
