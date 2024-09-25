@@ -21,8 +21,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     // Verify client token
-    $client_id = verify_client_uuid($client_uuid, $client_token, $pdo);
-    if ($client_id === false) {
+    $client_uuid_verified = verify_client_uuid($client_uuid, $client_token, $pdo);
+    if ($client_uuid_verified === false) {
         http_response_code(401); // Unauthorized
         echo json_encode(['status' => 'error', 'message' => 'Invalid token']);
         exit;
@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             INSERT INTO tickets (ticket_id, clients_id, status, issue_description)
             VALUES (?, ?, ?, ?)
         ");
-        $stmt->execute([$ticket_id, $client_id, $status, $issue_description]);
+        $stmt->execute([$ticket_id, $client_uuid_verified, $status, $issue_description]);
 
         // Respond with success
         http_response_code(200); // Created
@@ -60,14 +60,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 // Function to verify client UUID and token
 function verify_client_uuid($client_uuid, $client_token, $pdo) {
     try {
-        // Fetch the user ID and remember_token using uuid
-        $stmt = $pdo->prepare("SELECT id, remember_token FROM users WHERE uuid = ?");
+        // Fetch the user UUID and remember_token using uuid
+        $stmt = $pdo->prepare("SELECT uuid, remember_token FROM users WHERE uuid = ?");
         $stmt->execute([$client_uuid]);
         $client = $stmt->fetch(PDO::FETCH_ASSOC);
 
         // Compare the token from the request body with the one stored in the database
         if ($client && $client['remember_token'] === $client_token) {
-            return $client['id']; // Return the user ID
+            return $client['uuid']; // Return the user UUID instead of ID
         }
     } catch (PDOException $e) {
         // Handle any potential database errors
