@@ -4,7 +4,7 @@ require 'vendor/autoload.php';
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 include 'connection.php'; 
- 
+
 header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $data = json_decode($input, true);
 
     // Log incoming data
-    error_log(json_encode($data)); // Log incoming data
+    error_log("Incoming data: " . json_encode($data)); // Log incoming data
 
     $call_id = $data['call_id'] ?? '';
     $support_id = $data['support_id'] ?? '';
@@ -60,6 +60,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $support_stmt->execute([$support_id]);
         $support = $support_stmt->fetch(PDO::FETCH_ASSOC);
 
+        // Log the fetched client and support details
+        error_log("Fetched client details: " . json_encode($client));
+        error_log("Fetched support details: " . json_encode($support));
+
+        // Check if support details are retrieved correctly
+        if (!$support) {
+            error_log("Support not found for ID: $support_id");
+        }
+
         // Send WebSocket notification to notify all clients
         sendWebSocketNotification($call_id, $client['name'], $support['name'], $support_id); // Pass support_id
 
@@ -77,6 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } catch (PDOException $e) {
         http_response_code(500); // Internal Server Error
         echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
+        error_log('Database error: ' . $e->getMessage()); // Log database errors
     }
 }
 
@@ -90,6 +100,7 @@ function verify_support_token($support_id, $token, $pdo) {
 
         // If support not found or token doesn't match, return false
         if (!$support || $support['token'] !== $token) {
+            error_log("Token verification failed for support ID: $support_id"); // Log failure
             return false;
         }
 
@@ -97,6 +108,7 @@ function verify_support_token($support_id, $token, $pdo) {
         return true;
     } catch (PDOException $e) {
         // Handle any potential database errors
+        error_log('Token verification database error: ' . $e->getMessage()); // Log error
         return false;
     }
 }
@@ -114,9 +126,12 @@ function sendWebSocketNotification($call_id, $client_name, $support_name, $suppo
             'action' => 'claim_call',
             'call_id' => $call_id,
             'client_name' => $client_name,
+            'support_id' => $support_id ,
             'support_name' => $support_name,
-            'support_id' => $support_id // Include support_id in WebSocket message
         ]);
+
+        // Log the WebSocket message before sending
+        error_log("Sending WebSocket message: " . $message);
 
         // Send the WebSocket message
         $client->send($message);
@@ -124,8 +139,6 @@ function sendWebSocketNotification($call_id, $client_name, $support_name, $suppo
     } catch (Exception $e) {
         // Log the WebSocket error for debugging
         error_log('WebSocket Error: ' . $e->getMessage());
-        // Comment out the exception throw for now
-        // throw new Exception('WebSocket communication failed: ' . $e->getMessage());
         error_log('WebSocket communication failed: ' . $e->getMessage());
     }
 }
