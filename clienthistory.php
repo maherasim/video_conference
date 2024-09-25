@@ -34,15 +34,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
 
         // Fetch call history for the client (completed or canceled calls)
         $stmt = $pdo->prepare("
-        SELECT c.call_id, cl.name AS client_name, c.call_status, c.call_start_time, c.call_end_time, f.rating, f.feedback
-        FROM calls c
-        LEFT JOIN users s ON c.client_id COLLATE utf8mb4_unicode_ci = s.uuid COLLATE utf8mb4_unicode_ci
-        LEFT JOIN feedback f ON c.call_id = f.call_id
-        WHERE c.client_id COLLATE utf8mb4_unicode_ci = (
-            SELECT uuid FROM users WHERE remember_token = ? COLLATE utf8mb4_unicode_ci
-        ) COLLATE utf8mb4_unicode_ci
-    ");
-    
+            SELECT c.call_id, cl.name AS client_name, c.call_status, c.call_start_time, c.call_end_time, f.rating, f.feedback
+            FROM calls c
+            LEFT JOIN users cl ON c.client_id COLLATE utf8mb4_unicode_ci = cl.uuid COLLATE utf8mb4_unicode_ci
+            LEFT JOIN feedback f ON c.call_id = f.call_id
+            WHERE c.support_id COLLATE utf8mb4_unicode_ci = (
+                SELECT uuid FROM customer_support WHERE token = ? COLLATE utf8mb4_unicode_ci
+            ) COLLATE utf8mb4_unicode_ci
+        ");
     
         $stmt->execute([$client_token]);
         $callHistory = $stmt->fetchAll(PDO::FETCH_ASSOC);
