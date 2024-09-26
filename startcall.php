@@ -44,6 +44,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             exit;
         }
 
+        // Check for available support agents
+        $stmt = $pdo->prepare("SELECT * FROM customer_support WHERE status = 'available'");
+        $stmt->execute();
+        $availableSupport = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (empty($availableSupport)) {
+            // No support available
+            http_response_code(503); // Service Unavailable
+            echo json_encode(['status' => 'error', 'code' => 503, 'message' => 'No support available at this time.']);
+            exit;
+        }
+
         // Generate a unique call ID
         $call_id = 'call_' . bin2hex(random_bytes(6));
 
