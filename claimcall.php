@@ -125,4 +125,39 @@ function verify_support_token($support_id, $token, $pdo) {
         error_log('Token verification error: ' . $e->getMessage()); // Log the error
         return false;
     }
+    function sendWebSocketNotification($call_id, $client_name, $support_name, $support_id) {
+        // Log the entry into the function
+        $ws_url = 'ws://84.247.187.38:8080'; // Your WebSocket server URL
+    
+        try {
+            // Create a WebSocket connection
+            $client = new WebSocket\Client($ws_url);
+            
+            // Log successful connection
+            error_log("Connected to WebSocket server");
+    
+            $message = json_encode([
+                'action' => 'claim_call',
+                'call_id' => $call_id,
+                'client_name' => $client_name,
+                'support_id' => $support_id,
+                'support_name' => $support_name,
+            ]);
+    
+            // Log the WebSocket message before sending
+            error_log("Sending WebSocket message: " . $message);
+    
+            // Send the WebSocket message
+            $client->send($message);
+            $client->close();
+    
+            // Log successful send
+            error_log("WebSocket message sent successfully");
+        } catch (Exception $e) {
+            // Log the WebSocket error for debugging
+            error_log('WebSocket Error: ' . $e->getMessage());
+            error_log('WebSocket communication failed: ' . $e->getMessage());
+        }
+    
+    }
 }
