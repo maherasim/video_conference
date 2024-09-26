@@ -50,9 +50,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // Log claiming details before executing the update
         error_log("Claiming call ID: $call_id by support ID: $support_id"); // Log claim details
 
+        // Start transaction to ensure both updates happen atomically
+        $pdo->beginTransaction();
+
         // Claim the call by updating the status and assigning support_id
         $stmt = $pdo->prepare("UPDATE calls SET support_id = ?, call_status = 'claimed', updated_at = NOW() WHERE call_id = ?");
         $stmt->execute([$support_id, $call_id]);
+
+        // Update the customer_support status to 'ongoing'
+        $stmt = $pdo->prepare("UPDATE customer_support SET status = 'ongoing' WHERE uuid = ?");
+        $stmt->execute([$support_id]);
+
+        // Commit the transaction
+        $pdo->commit();
 
         // Fetch client and support names for response
         $client_stmt = $pdo->prepare("SELECT name FROM users WHERE uuid = ?");
@@ -86,6 +96,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             ]
         ]);
     } catch (PDOException $e) {
+        // Rollback the transaction in case of an error
+        $pdo->rollBack();
         http_response_code(500); // Internal Server Error
         echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
         error_log('Database error: ' . $e->getMessage()); // Log database errors
