@@ -9,11 +9,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $call_id = $data['call_id'] ?? '';
     $user_role = $data['user_role'] ?? '';
     $user_id = $data['user_id'] ?? '';
+    $token = $data['token'] ?? ''; // Assuming token is used for verification, if needed
 
     // Validate input
-    if (empty($call_id) || empty($user_role) || empty($user_id)) {
+    if (empty($call_id) || empty($user_role) || empty($user_id) || empty($token)) {
         http_response_code(400); // Bad Request
-        echo json_encode(['status' => 'error', 'message' => 'Call ID, User Role, and User ID are required.']);
+        echo json_encode(['status' => 'error', 'message' => 'Call ID, User Role, User ID, and Token are required.']);
         exit;
     }
 
@@ -36,6 +37,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             exit;
         }
 
+        // Start a transaction to ensure atomicity
+        $pdo->beginTransaction();
+
         // Update the call status to 'completed' and set the call_end_time
         $stmt = $pdo->prepare("
             UPDATE calls 
@@ -44,10 +48,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         ");
         $stmt->execute([$call_id]);
 
+        // Get the support_id from the calls table
+        $support_id = $call['support_id'];
+
+        // Update the status of the support staff to 'available' in the customer_support table
+        $stmt = $pdo->prepare("
+            UPDATE customer_support 
+            SET status = 'available' 
+            WHERE uuid = ?
+        ");
+        $stmt->execute([$support_id]);
+
+        // Commit the transaction
+        $pdo->commit();
+
         // Respond with success
         http_response_code(200); // OK
-        echo json_encode(['status' => 'success', 'message' => 'Call ended']);
+        echo json_encode(['status' => 'success', 'message' => 'Call ended and support status updated to available.']);
     } catch (PDOException $e) {
+        // Roll back the transaction in case of error
+        $pdo->rollBack();
         http_response_code(500); // Internal Server Error
         echo json_encode(['status' => 'error', 'message' => 'Unable to end the call: ' . $e->getMessage()]);
     }
