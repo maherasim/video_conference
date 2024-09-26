@@ -32,7 +32,9 @@ class WebSocketServer implements MessageComponentInterface {
                         'status' => 'success',
                         'message' => 'Call claimed by support',
                         'call_id' => $data['call_id'],
-                        'support_name' => $data['support_name']
+                        'support_name' => $data['support_name'],
+                        'client_name' => $data['client_name'],
+                        'support_id' => $data['support_id']
                     ]));
                 }
             }

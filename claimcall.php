@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $support_name = isset($support['name']) ? $support['name'] : 'Unknown Support';
 
         // Send WebSocket notification to notify all clients
-        sendWebSocketNotification($call_id); // Pass support_id
+        sendWebSocketNotification($call_id, $client_name, $support_name, $support_id); // Pass support_id
 
         // Respond with success
         http_response_code(200); // OK
@@ -115,7 +115,7 @@ function verify_support_token($support_id, $token, $pdo) {
     }
 }
 
-function sendWebSocketNotification($call_id) {
+function sendWebSocketNotification($call_id, $client_name, $support_name, $support_id) {
     // Log the entry into the function
     $ws_url = 'ws://84.247.187.38:8080'; // Your WebSocket server URL
 
@@ -129,7 +129,9 @@ function sendWebSocketNotification($call_id) {
         $message = json_encode([
             'action' => 'claim_call',
             'call_id' => $call_id,
-           
+            'client_name' => $client_name,
+            'support_id' => $support_id,
+            'support_name' => $support_name,
         ]);
 
         // Log the WebSocket message before sending
