@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $support_name = isset($support['name']) ? $support['name'] : 'Unknown Support';
 
         // Send WebSocket notification to notify all clients
-        sendWebSocketNotification($call_id, $client_name, $support_name, $support_id); // Pass support_id
+        sendWebSocketNotification($call_id); // Pass support_id
 
         // Respond with success
         http_response_code(200); // OK
