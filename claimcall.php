@@ -36,6 +36,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             exit;
         }
 
+        // Check if the support is available (not in an ongoing call)
+        $stmt = $pdo->prepare("SELECT status FROM customer_support WHERE uuid = ?");
+        $stmt->execute([$support_id]);
+        $support_status = $stmt->fetch(PDO::FETCH_ASSOC)['status'];
+
+        if ($support_status !== 'available') {
+            http_response_code(409); // Conflict
+            echo json_encode(['status' => 'error', 'message' => 'Support is already in an ongoing call.']);
+            exit;
+        }
+
         // Check if the call exists and is not claimed by another support
         $stmt = $pdo->prepare("SELECT * FROM calls WHERE call_id = ? AND call_status = 'waiting'");
         $stmt->execute([$call_id]);
@@ -77,12 +88,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         error_log("Fetched client details: " . json_encode($client));
         error_log("Fetched support details: " . json_encode($support));
 
-        // Initialize variables to prevent undefined variable warnings
         $client_name = isset($client['name']) ? $client['name'] : 'Unknown Client';
         $support_name = isset($support['name']) ? $support['name'] : 'Unknown Support';
 
         // Send WebSocket notification to notify all clients
-        sendWebSocketNotification($call_id, $client_name, $support_name, $support_id); // Pass support_id
+        sendWebSocketNotification($call_id, $client_name, $support_name, $support_id);
 
         // Respond with success
         http_response_code(200); // OK
@@ -92,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             'call_details' => [
                 'client_name' => $client_name,
                 'support_name' => $support_name,
-                'support_id' => $support_id // Include the support_id in the response
+                'support_id' => $support_id
             ]
         ]);
     } catch (PDOException $e) {
@@ -100,7 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $pdo->rollBack();
         http_response_code(500); // Internal Server Error
         echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
-        error_log('Database error: ' . $e->getMessage()); // Log database errors
+        error_log('Database error: ' . $e->getMessage());
     }
 }
 
@@ -122,7 +132,7 @@ function verify_support_token($support_id, $token, $pdo) {
         return true;
     } catch (PDOException $e) {
         // Handle any potential database errors
-        error_log('Token verification database error: ' . $e->getMessage()); // Log error
+        error_log('Token verification database error: ' . $e->getMessage());
         return false;
     }
 }
