@@ -54,6 +54,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt = $pdo->prepare("UPDATE calls SET support_id = ?, call_status = 'claimed', updated_at = NOW() WHERE call_id = ?");
         $stmt->execute([$support_id, $call_id]);
 
+        // Update the customer_support status to 'ongoing'
+        $stmt = $pdo->prepare("UPDATE customer_support SET status = 'ongoing' WHERE uuid = ?");
+        $stmt->execute([$support_id]);
+
         // Fetch client and support names for response
         $client_stmt = $pdo->prepare("SELECT name FROM users WHERE uuid = ?");
         $client_stmt->execute([$call['client_id']]);
@@ -82,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             'call_details' => [
                 'client_name' => $client_name,
                 'support_name' => $support_name,
-                'support_id' => $support_id // Include the support_id in the response
+                'support_id' => $support_id 
             ]
         ]);
     } catch (PDOException $e) {
