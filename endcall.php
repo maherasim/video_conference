@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         // Respond with success
         http_response_code(200); // OK
-        echo json_encode(['status' => 'success', 'message' => 'Call ended and support status updated to available.']);
+        echo json_encode(['status' => 'success', 'message' => 'Call ended']);
     } catch (PDOException $e) {
         // Roll back the transaction in case of error
         $pdo->rollBack();
