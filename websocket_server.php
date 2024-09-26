@@ -30,7 +30,7 @@ class WebSocketServer implements MessageComponentInterface {
                 if ($client !== $from) {
                     $client->send(json_encode([
                         'status' => 'success',
-                        'message' => 'Call claimed by asim',
+                        'message' => 'Call claimed by support',
                         'call_id' => $data['call_id'],
                         'support_name' => $data['support_name'],
                         'client_name' => $data['client_name'],
