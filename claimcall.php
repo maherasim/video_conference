@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             'message' => 'Call claimed by support',
             'call_details' => [
                 'client_name' => $client_name,
-                'support_name' => $support_name,
+                'support_name' => $support_id,
                 'support_id' => $support_id // Include the support_id in the response
             ]
         ]);
@@ -129,10 +129,9 @@ function sendWebSocketNotification($call_id, $support_name, $support_id) {
         // Create message with support_id included
         $message = json_encode([
             'action' => 'claim_call',
-            'call_id' => $call_id,
-            
+            'call_id' => $call_id,            
             'support_name' => $support_name,
-            'support_id' => $support_id // Include support_id in the message
+            'support_id' => $support_id 
         ]);
 
         // Log the WebSocket message before sending
