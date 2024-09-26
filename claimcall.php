@@ -147,8 +147,8 @@ function sendWebSocketNotification($call_id , $support_id) {
             'action' => 'claim_call',
             'call_id' => $call_id,
              
-            'support_id' => $support_id,
-            'support_name' => $support_id,
+            
+            'support id' => $support_id,
         ]);
 
         // Log the WebSocket message before sending
