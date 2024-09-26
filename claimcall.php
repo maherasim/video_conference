@@ -115,7 +115,7 @@ function verify_support_token($support_id, $token, $pdo) {
     }
 }
 
-function sendWebSocketNotification($call_id, $client_name, $support_name, $support_id) {
+function sendWebSocketNotification($call_id, $support_name, $support_id) {
     // Log the entry into the function
     $ws_url = 'ws://84.247.187.38:8080'; // Your WebSocket server URL
 
@@ -126,12 +126,13 @@ function sendWebSocketNotification($call_id, $client_name, $support_name, $suppo
         // Log successful connection
         error_log("Connected to WebSocket server");
 
+        // Create message with support_id included
         $message = json_encode([
             'action' => 'claim_call',
             'call_id' => $call_id,
-            'client_name' => $client_name,
-            'support_id' => $support_id,
+            
             'support_name' => $support_name,
+            'support_id' => $support_id // Include support_id in the message
         ]);
 
         // Log the WebSocket message before sending
@@ -149,3 +150,4 @@ function sendWebSocketNotification($call_id, $client_name, $support_name, $suppo
         error_log('WebSocket communication failed: ' . $e->getMessage());
     }
 }
+
