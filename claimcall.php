@@ -85,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         error_log("Preparing WebSocket notification - Call ID: $call_id, Client Name: $client_name, Support Name: $support_name, Support ID: $support_id");
 
         // Send WebSocket notification to notify all clients
-        sendWebSocketNotification($call_id, $client_name, $support_name, $support_id); 
+        sendWebSocketNotification($call_id, $support_id); 
 
         // Respond with success
         http_response_code(200); // OK
@@ -132,7 +132,7 @@ function verify_support_token($support_id, $token, $pdo) {
     }
 }
 
-function sendWebSocketNotification($call_id, $client_name, $support_name, $support_id) {
+function sendWebSocketNotification($call_id , $support_id) {
     // Log the entry into the function
     $ws_url = 'ws://84.247.187.38:8080'; // Your WebSocket server URL
 
