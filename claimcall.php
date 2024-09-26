@@ -112,11 +112,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 // Function to verify support token from the 'customer_support' table
 function verify_support_token($support_id, $token, $pdo) {
     try {
-        $stmt = $pdo->prepare("SELECT remember_token FROM customer_support WHERE uuid = ?");
+        $stmt = $pdo->prepare("SELECT token FROM customer_support WHERE uuid = ?");
         $stmt->execute([$support_id]);
         $support = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!$support || $support['remember_token'] !== $token) {
+        if (!$support || $support['token'] !== $token) {
             return false;
         }
 
