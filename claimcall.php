@@ -70,6 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // Initialize variables to prevent undefined variable warnings
         $client_name = isset($client['name']) ? $client['name'] : 'Unknown Client';
         $support_name = isset($support['name']) ? $support['name'] : 'Unknown Support';
+        $support_id = isset($support['support_id']) ? $support['support_id'] : 'Unknown id';
 
         // Send WebSocket notification to notify all clients
         sendWebSocketNotification($call_id, $client_name, $support_name, $support_id); // Pass support_id
