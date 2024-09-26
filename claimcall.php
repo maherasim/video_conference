@@ -36,6 +36,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             exit;
         }
 
+        // Check the support staff's status
+        $stmt = $pdo->prepare("SELECT status FROM customer_support WHERE uuid = ?");
+        $stmt->execute([$support_id]);
+        $support = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$support) {
+            http_response_code(404); // Not Found
+            echo json_encode(['status' => 'error', 'message' => 'Support not found.']);
+            exit;
+        }
+
+        if ($support['status'] !== 'available') {
+            http_response_code(409); // Conflict
+            echo json_encode(['status' => 'error', 'message' => 'Support is already in another call.']);
+            exit;
+        }
+
         // Check if the call exists and is not claimed by another support
         $stmt = $pdo->prepare("SELECT * FROM calls WHERE call_id = ? AND call_status = 'waiting'");
         $stmt->execute([$call_id]);
@@ -75,81 +92,37 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $client_name = isset($client['name']) ? $client['name'] : 'Unknown Client';
         $support_name = isset($support['name']) ? $support['name'] : 'Unknown Support';
 
-        // Send WebSocket notification to notify all clients
-        sendWebSocketNotification($call_id, $client_name, $support_name, $support_id); // Pass support_id
-
         // Respond with success
-        http_response_code(200); // OK
+        http_response_code(200);
         echo json_encode([
             'status' => 'success',
-            'message' => 'Call claimed by support',
-            'call_details' => [
-                'client_name' => $client_name,
-                'support_name' => $support_name,
-                'support_id' => $support_id 
-            ]
+            'message' => 'Call claimed successfully.',
+            'call_id' => $call_id,
+            'client_name' => $client_name,
+            'support_name' => $support_name
         ]);
+
     } catch (PDOException $e) {
+        error_log('Database error: ' . $e->getMessage()); // Log the database error
         http_response_code(500); // Internal Server Error
-        echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
-        error_log('Database error: ' . $e->getMessage()); // Log database errors
+        echo json_encode(['status' => 'error', 'message' => 'Internal Server Error, please try again later.']);
     }
 }
 
-// Function to verify the support token from the 'customer_support' table
+// Function to verify support token from the 'customer_support' table
 function verify_support_token($support_id, $token, $pdo) {
     try {
-        // Fetch support by support_id
-        $stmt = $pdo->prepare("SELECT token FROM customer_support WHERE uuid = ?");
+        $stmt = $pdo->prepare("SELECT remember_token FROM customer_support WHERE uuid = ?");
         $stmt->execute([$support_id]);
         $support = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // If support not found or token doesn't match, return false
-        if (!$support || $support['token'] !== $token) {
-            error_log("Token verification failed for support ID: $support_id"); // Log failure
+        if (!$support || $support['remember_token'] !== $token) {
             return false;
         }
 
-        // If the token matches, return true
         return true;
     } catch (PDOException $e) {
-        // Handle any potential database errors
-        error_log('Token verification database error: ' . $e->getMessage()); // Log error
+        error_log('Token verification error: ' . $e->getMessage()); // Log the error
         return false;
-    }
-}
-
-function sendWebSocketNotification($call_id, $client_name, $support_name, $support_id) {
-    // Log the entry into the function
-    $ws_url = 'ws://84.247.187.38:8080'; // Your WebSocket server URL
-
-    try {
-        // Create a WebSocket connection
-        $client = new WebSocket\Client($ws_url);
-        
-        // Log successful connection
-        error_log("Connected to WebSocket server");
-
-        $message = json_encode([
-            'action' => 'claim_call',
-            'call_id' => $call_id,
-            'client_name' => $client_name,
-            'support_id' => $support_id,
-            'support_name' => $support_name,
-        ]);
-
-        // Log the WebSocket message before sending
-        error_log("Sending WebSocket message: " . $message);
-
-        // Send the WebSocket message
-        $client->send($message);
-        $client->close();
-
-        // Log successful send
-        error_log("WebSocket message sent successfully");
-    } catch (Exception $e) {
-        // Log the WebSocket error for debugging
-        error_log('WebSocket Error: ' . $e->getMessage());
-        error_log('WebSocket communication failed: ' . $e->getMessage());
     }
 }
