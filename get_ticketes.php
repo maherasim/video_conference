@@ -49,11 +49,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
                 'message' => 'No tickets found.'
             ]);
         } else {
-            // Respond with the list of tickets
+            // Modify the result to rename 'clients_id' to 'client_id'
+            $modifiedTickets = array_map(function ($ticket) {
+                $ticket['client_id'] = $ticket['clients_id']; // Rename clients_id to client_id
+                unset($ticket['clients_id']); // Remove the original clients_id key
+                return $ticket;
+            }, $tickets);
+
+            // Respond with the modified list of tickets
             http_response_code(200); // OK
             echo json_encode([
                 'status' => 'success',
-                'tickets' => $tickets
+                'tickets' => $modifiedTickets
             ]);
         }
     } catch (PDOException $e) {
