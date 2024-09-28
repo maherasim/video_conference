@@ -1,4 +1,4 @@
-<?php
+<?php 
 include 'connection.php'; // Ensure this line is at the top
 header('Content-Type: application/json');
 
@@ -10,12 +10,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $client_id = $data['client_id'] ?? '';
     $support_id = $data['support_id'] ?? '';
     $rating = $data['rating'] ?? '';
-    $feedback = $data['feedback'] ?? '';
+    $feedback = $data['feedback'] ?? null; // Feedback is now optional
 
     // Validate input
-    if (empty($call_id) || empty($client_id) || empty($support_id) || empty($rating) || empty($feedback)) {
+    if (empty($call_id) || empty($client_id) || empty($support_id) || empty($rating)) {
         http_response_code(400); // Bad Request
-        echo json_encode(['status' => 'error', 'message' => 'All fields (call_id, client_id, support_id, rating, feedback) are required.']);
+        echo json_encode(['status' => 'error', 'message' => 'Fields call_id, client_id, support_id, and rating are required.']);
         exit;
     }
 
@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             exit;
         }
 
-        // Insert feedback into the feedback table
+        // Insert feedback into the feedback table, allowing feedback to be NULL
         $stmt = $pdo->prepare("
             INSERT INTO feedback (call_id, client_id, support_id, rating, feedback, created_at) 
             VALUES (?, ?, ?, ?, ?, NOW())
@@ -52,3 +52,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         echo json_encode(['status' => 'error', 'message' => 'Unable to submit feedback: ' . $e->getMessage()]);
     }
 }
+
+
+?>
