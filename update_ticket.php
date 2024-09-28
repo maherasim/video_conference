@@ -1,4 +1,4 @@
-<?php
+<?php 
 include 'connection.php'; // Ensure this line is at the top
 header('Content-Type: application/json');
 
@@ -6,7 +6,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $input = file_get_contents('php://input');
     $data = json_decode($input, true);
 
-    
     $support_id = $data['support_id'] ?? '';
     $support_token = $data['support_token'] ?? '';
     $ticket_id = $data['ticket_id'] ?? '';
@@ -28,7 +27,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     try {
-        // Update the ticket's status and resolution details in the database
+        // Check if the ticket's status is already 'Resolved'
+        $stmt = $pdo->prepare("SELECT status FROM tickets WHERE ticket_id = ?");
+        $stmt->execute([$ticket_id]);
+        $ticket = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$ticket) {
+            http_response_code(404); // Not Found
+            echo json_encode(['status' => 'error', 'message' => 'Ticket not found.']);
+            exit;
+        }
+
+        // Check if the ticket is already resolved
+        if ($ticket['status'] === 'Resolved') {
+            http_response_code(409); // Conflict
+            echo json_encode(['status' => 'error', 'message' => 'Ticket is already resolved.']);
+            exit;
+        }
+
+        // Proceed to update the ticket's status
         $stmt = $pdo->prepare("
             UPDATE tickets 
             SET status = ?, issue_description = ?, updated_at = NOW() 
@@ -64,3 +81,6 @@ function verify_support_jwt_token($support_id, $token, $pdo) {
         return false; // Handle any potential database errors
     }
 }
+
+
+?>

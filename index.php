@@ -20,7 +20,7 @@ switch ($action) {
     case 'supportsignout':
         include 'supportsignout.php';
         break;
-        case 'cancel_call':
+    case 'cancel_call':
             include 'cancelcall.php';
             break;
 
