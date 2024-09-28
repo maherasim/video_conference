@@ -28,6 +28,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit;
     }
 
+    // Check if any support agents are available
+    try {
+        $stmt = $pdo->prepare("SELECT COUNT(*) AS available_agents FROM customer_support WHERE status = 'available'");
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($result['available_agents'] > 0) {
+            // If any agent is available, do not create the ticket
+            http_response_code(409); // Conflict
+            echo json_encode(['status' => 'error', 'message' => 'There are available support agents. No need to create a ticket.']);
+            exit;
+        }
+    } catch (PDOException $e) {
+        http_response_code(500); // Internal Server Error
+        echo json_encode(['status' => 'error', 'message' => 'Error checking support agent availability: ' . $e->getMessage()]);
+        exit;
+    }
+
+    // If no agents are available, proceed to create the ticket
     try {
         // Generate a unique ticket ID
         $ticket_id = 'ticket_' . uniqid();
@@ -40,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt->execute([$ticket_id, $client_uuid_verified, $status, $issue_description]);
 
         // Respond with success
-        http_response_code(200); // Created
+        http_response_code(200); // OK
         echo json_encode([
             'status' => 'success',
             'ticket_id' => $ticket_id,
@@ -54,7 +73,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             'error' => $e->getMessage() // Show the actual error
         ]);
     }
-    
 }
 
 // Function to verify client UUID and token
@@ -74,3 +92,5 @@ function verify_client_uuid($client_uuid, $client_token, $pdo) {
     }
     return false; // Invalid UUID or token
 }
+
+?>
