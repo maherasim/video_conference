@@ -41,7 +41,10 @@ switch ($action) {
         include 'viewticket.php';
         break;
             
-        
+  case 'get_tickets':
+        include 'get_ticketes.php';
+        break;
+                
     case 'startcall':
         include 'startcall.php';
         break;
