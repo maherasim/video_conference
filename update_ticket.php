@@ -2,7 +2,7 @@
 include 'connection.php'; // Ensure this line is at the top
 header('Content-Type: application/json');
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
     $input = file_get_contents('php://input');
     $data = json_decode($input, true);
 
