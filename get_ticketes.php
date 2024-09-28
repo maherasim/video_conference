@@ -2,63 +2,77 @@
 include 'connection.php'; // Ensure this line is at the top
 header('Content-Type: application/json');
 
-// Verify the Bearer token for support staff
-function verify_support_jwt_token($support_id, $token, $pdo) {
-    try {
-        // Use the token field for verification for support staff
-        $stmt = $pdo->prepare("SELECT id FROM customer_support WHERE uuid = ? AND token = ?");
-        $stmt->execute([$support_id, $token]);
-        $support = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        return $support ? true : false; // Return true if found
-    } catch (PDOException $e) {
-        return false; // Handle any potential database errors
-    }
-}
-
+// Check if the request method is GET
 if ($_SERVER['REQUEST_METHOD'] == 'GET') {
-    // Check for the Authorization header (Bearer token)
+
+    // Get the Authorization header
     $headers = apache_request_headers();
     $authHeader = $headers['Authorization'] ?? '';
 
-    // Validate the Bearer token format
-    if (strpos($authHeader, 'Bearer ') !== 0) {
+    if (empty($authHeader)) {
         http_response_code(401); // Unauthorized
-        echo json_encode(['status' => 'error', 'message' => 'Authorization Bearer token required.']);
+        echo json_encode(['status' => 'error', 'message' => 'Authorization header missing']);
         exit;
     }
 
-    // Extract the token from the header
-    $jwt_token = str_replace('Bearer ', '', $authHeader);
+    // Extract the token from the Authorization header
+    list($bearer, $token) = explode(' ', $authHeader);
 
-    // Split the token to get support_id and token (assuming they're part of the token in some format)
-    // You should modify this according to your actual token structure.
-    list($support_id, $support_token) = explode('.', $jwt_token);
-
-    // Verify the token
-    if (!verify_support_jwt_token($support_id, $support_token, $pdo)) {
+    if (strcasecmp($bearer, 'Bearer') != 0 || empty($token)) {
         http_response_code(401); // Unauthorized
-        echo json_encode(['status' => 'error', 'message' => 'Invalid support token.']);
+        echo json_encode(['status' => 'error', 'message' => 'Invalid Authorization header']);
         exit;
     }
 
-    // Proceed with fetching tickets after token verification
     try {
-        // Retrieve all tickets from the database
-        $stmt = $pdo->prepare("SELECT * FROM tickets");
+        // Verify the support token (JWT token check)
+        if (!verify_support_jwt_token($token, $pdo)) {
+            http_response_code(401); // Unauthorized
+            echo json_encode(['status' => 'error', 'message' => 'Invalid token']);
+            exit;
+        }
+
+        // Fetch the tickets for authorized support staff
+        $stmt = $pdo->prepare("
+            SELECT ticket_id, clients_id, status, issue_description
+            FROM tickets
+        ");
         $stmt->execute();
         $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        if ($tickets) {
-            http_response_code(200); // OK
-            echo json_encode(['status' => 'success', 'data' => $tickets]);
-        } else {
+        // Check if tickets are found
+        if (empty($tickets)) {
             http_response_code(404); // Not Found
-            echo json_encode(['status' => 'error', 'message' => 'No tickets found.']);
+            echo json_encode([
+                'status' => 'success',
+                'tickets' => [], // Return empty array if no records found
+                'message' => 'No tickets found.'
+            ]);
+        } else {
+            // Respond with the list of tickets
+            http_response_code(200); // OK
+            echo json_encode([
+                'status' => 'success',
+                'tickets' => $tickets
+            ]);
         }
     } catch (PDOException $e) {
         http_response_code(500); // Internal Server Error
-        echo json_encode(['status' => 'error', 'message' => 'Unable to retrieve tickets: ' . $e->getMessage()]);
+        echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
+    }
+}
+
+// Function to verify the support token from the 'customer_support' table
+function verify_support_jwt_token($token, $pdo) {
+    try {
+        // Use the token field for verification for support staff
+        $stmt = $pdo->prepare("SELECT token FROM customer_support WHERE token = ? COLLATE utf8mb4_unicode_ci");
+        $stmt->execute([$token]);
+        $support = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $support ? true : false;
+    } catch (PDOException $e) {
+        return false;
     }
 }
 ?>
