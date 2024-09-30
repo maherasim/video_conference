@@ -1,6 +1,7 @@
 <?php
 include 'connection.php'; // Ensure this line is at the top
 header('Content-Type: application/json');
+date_default_timezone_set('America/New_York'); // Set time zone to New York
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $input = file_get_contents('php://input');
