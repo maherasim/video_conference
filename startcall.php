@@ -1,7 +1,7 @@
 <?php 
 include 'connection.php'; 
 header('Content-Type: application/json');
-date_default_timezone_set('America/New_York');
+date_default_timezone_set('America/New_York'); // Set time zone to New York
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -58,9 +58,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // Generate a unique call ID
         $call_id = 'call_' . bin2hex(random_bytes(6));
 
-        // Insert the new call record into the database
-        $stmt = $pdo->prepare("INSERT INTO calls (call_id, client_id, call_status, created_at, call_start_time) VALUES (?, ?, 'waiting', NOW(), NOW())");
-        $stmt->execute([$call_id, $client_uuid]);
+        // Get the current timestamp in New York timezone
+        $currentDateTime = date('Y-m-d H:i:s'); 
+
+        // Insert the new call record into the database using PHP's current date/time
+        $stmt = $pdo->prepare("INSERT INTO calls (call_id, client_id, call_status, created_at, call_start_time) VALUES (?, ?, 'waiting', ?, ?)");
+        $stmt->execute([$call_id, $client_uuid, $currentDateTime, $currentDateTime]);
 
         // Respond with success first to ensure data is sent even if WebSocket fails
         http_response_code(200); // OK
