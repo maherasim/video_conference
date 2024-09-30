@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         // Update the call status to 'canceled'
-        $stmt = $pdo->prepare("UPDATE calls SET call_status = 'canceled', updated_at = NOW() WHERE call_id = ?");
+        $stmt = $pdo->prepare("UPDATE calls SET call_status = 'canceled', created_at = NOW() WHERE call_id = ?");
         $stmt->execute([$call_id]);
 
         // Respond with success
