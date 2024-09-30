@@ -41,13 +41,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // Start a transaction to ensure atomicity
         $pdo->beginTransaction();
 
+        // Get the current timestamp in New York timezone
+        $currentDateTime = date('Y-m-d H:i:s'); // Current time in New York timezone
+
         // Update the call status to 'completed' and set the call_end_time
         $stmt = $pdo->prepare("
             UPDATE calls 
-            SET call_status = 'completed', call_end_time = NOW() 
+            SET call_status = 'completed', call_end_time = ? 
             WHERE call_id = ?
         ");
-        $stmt->execute([$call_id]);
+        $stmt->execute([$currentDateTime, $call_id]);
 
         // Get the support_id from the calls table
         $support_id = $call['support_id'];
