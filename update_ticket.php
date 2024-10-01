@@ -13,10 +13,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
     $status = $data['status'] ?? '';
     $resolution_details = $data['resolution_details'] ?? '';
 
-    // Validate input
-    if (empty($support_id) || empty($support_token) || empty($ticket_id) || empty($status)) {
+    // Validate input, making resolution details compulsory
+    if (empty($support_id) || empty($support_token) || empty($ticket_id) || empty($status) || empty($resolution_details)) {
         http_response_code(400); // Bad Request
-        echo json_encode(['status' => 'error', 'message' => 'Support ID, token, ticket ID, and status are required.']);
+        echo json_encode(['status' => 'error', 'message' => 'Support ID, token, ticket ID, status, and resolution details are required.']);
         exit;
     }
 
@@ -46,10 +46,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
             exit;
         }
 
-        // Proceed to update the ticket's status
+        // Proceed to update the ticket's status and resolution details
         $stmt = $pdo->prepare("
             UPDATE tickets 
-            SET status = ?, issue_description = ?, updated_at = NOW() 
+            SET status = ?, resolution_details = ?, updated_at = NOW() 
             WHERE ticket_id = ?
         ");
         $stmt->execute([$status, $resolution_details, $ticket_id]);
@@ -82,6 +82,5 @@ function verify_support_jwt_token($support_id, $token, $pdo) {
         return false; // Handle any potential database errors
     }
 }
-
 
 ?>
