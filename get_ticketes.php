@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
 
         // Fetch the tickets for authorized support staff
         $stmt = $pdo->prepare("
-            SELECT ticket_id, clients_id, status, issue_description
+            SELECT ticket_id, clients_id, status, issue_description, resolution_details 
             FROM tickets
         ");
         $stmt->execute();
