@@ -32,10 +32,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             exit;
         }
 
-        // Fetch the tickets for authorized support staff
+        // Fetch the tickets and the client name by joining the users table
         $stmt = $pdo->prepare("
-            SELECT ticket_id, clients_id, status, issue_description, resolution_details 
-            FROM tickets
+            SELECT 
+                t.ticket_id, 
+                t.clients_id, 
+                t.status, 
+                t.issue_description, 
+                t.resolution_details,
+                u.name AS client_name
+            FROM tickets t
+            LEFT JOIN users u ON t.clients_id = u.uuid
         ");
         $stmt->execute();
         $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -49,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
                 'message' => 'No tickets found.'
             ]);
         } else {
-            // Modify the result to rename 'clients_id' to 'client_id'
+            // Modify the result to rename 'clients_id' to 'client_id' and include 'client_name'
             $modifiedTickets = array_map(function ($ticket) {
                 $ticket['client_id'] = $ticket['clients_id']; // Rename clients_id to client_id
                 unset($ticket['clients_id']); // Remove the original clients_id key

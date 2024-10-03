@@ -39,33 +39,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     }
 
     try {
-        // Fetch the ticket status and client's name by joining the users table
+        // Fetch the ticket status from the database
         $stmt = $pdo->prepare("
-            SELECT 
-                t.ticket_id, 
-                t.status, 
-                t.issue_description, 
-                t.resolution_details, 
-                t.clients_id, 
-                t.created_at, 
-                t.updated_at,
-                u.name AS client_name
-            FROM tickets t
-            JOIN users u ON t.clients_id = u.uuid
-            WHERE t.ticket_id = ?
+            SELECT ticket_id, status, issue_description, resolution_details,clients_id, created_at, updated_at
+            FROM tickets
+            WHERE ticket_id = ?
         ");
         $stmt->execute([$ticket_id]);
         $ticket = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($ticket) {
-            // Respond with success and the ticket status, including the client's name
+            // Respond with success and the ticket status
             http_response_code(200); // OK
             echo json_encode([
                 'status' => 'success',
                 'ticket_status' => [
                     'ticket_id' => $ticket['ticket_id'],
                     'client_id' => $ticket['clients_id'],
-                    'client_name' => $ticket['client_name'], // Fetching client's name
                     'status' => $ticket['status'],
                     'issue_description' => $ticket['issue_description'],
                     'resolution_details' => $ticket['resolution_details'],
