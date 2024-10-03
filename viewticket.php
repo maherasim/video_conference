@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     try {
         // Fetch the ticket status from the database
         $stmt = $pdo->prepare("
-            SELECT ticket_id, status, issue_description, created_at, updated_at
+            SELECT ticket_id, status, issue_description, resolution_details, created_at, updated_at
             FROM tickets
             WHERE ticket_id = ?
         ");
