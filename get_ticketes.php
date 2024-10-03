@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             exit;
         }
 
-        // Fetch the tickets and the client name by joining the users table
+        // Fetch the tickets and associated client names from the database
         $stmt = $pdo->prepare("
             SELECT 
                 t.ticket_id, 
@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
                 t.resolution_details,
                 u.name AS client_name
             FROM tickets t
-            LEFT JOIN users u ON t.clients_id = u.uuid
+            LEFT JOIN users u ON t.clients_id = u.uuid COLLATE utf8mb4_unicode_ci
         ");
         $stmt->execute();
         $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -56,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
                 'message' => 'No tickets found.'
             ]);
         } else {
-            // Modify the result to rename 'clients_id' to 'client_id' and include 'client_name'
+            // Modify the result to rename 'clients_id' to 'client_id'
             $modifiedTickets = array_map(function ($ticket) {
                 $ticket['client_id'] = $ticket['clients_id']; // Rename clients_id to client_id
                 unset($ticket['clients_id']); // Remove the original clients_id key
