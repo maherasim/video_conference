@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     try {
         // Fetch the ticket status from the database
         $stmt = $pdo->prepare("
-            SELECT ticket_id, status, issue_description, resolution_details, created_at, updated_at
+            SELECT ticket_id, status, issue_description, resolution_details,clients_id, created_at, updated_at
             FROM tickets
             WHERE ticket_id = ?
         ");
@@ -55,6 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
                 'status' => 'success',
                 'ticket_status' => [
                     'ticket_id' => $ticket['ticket_id'],
+                    'client_id' => $ticket['clients_id'],
                     'status' => $ticket['status'],
                     'issue_description' => $ticket['issue_description'],
                     'resolution_details' => $ticket['resolution_details'],
