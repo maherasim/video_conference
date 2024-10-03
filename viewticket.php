@@ -57,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
                     'ticket_id' => $ticket['ticket_id'],
                     'status' => $ticket['status'],
                     'issue_description' => $ticket['issue_description'],
+                    'resolution_details' => $ticket['resolution_details'],
                     'created_at' => $ticket['created_at'],
                     'updated_at' => $ticket['updated_at']
                 ]
